@@ -19,7 +19,7 @@ void DXApp::Init()
 	// Configurando valores do programa
 	vIndex = 0;
 	count = 0;
-	vertices = new Vertex[vMax] {};
+	vertices = new Vertex[vMax]{};
 
 	cor = XMFLOAT4(Colors::White);
 
@@ -28,23 +28,23 @@ void DXApp::Init()
 
 void DXApp::Update()
 {
-	if(input->KeyPress(VK_ESCAPE))
+	if (input->KeyPress(VK_ESCAPE))
 		window->Close();
-	
-	
-	if(input->KeyPress(MK_LBUTTON))
+
+
+	if (input->KeyPress(MK_LBUTTON))
 	{
-			
+
 		// Recebe os valores da interface
 		float cx = float(window->CenterX());
-		float cy =float (window->CenterY());
+		float cy = float(window->CenterY());
 		float mx = float(input->MouseX());
 		float my = float(input->MouseY());
 
 		// Processa para informações da GPU
 		float posX = (mx / cx) - 1.0f;
 		float posY = 1.0f - (my / cy);
-		
+
 		// Instancia novo vértice no vetor
 		vertices[vIndex] = Vertex{ XMFLOAT3(posX, posY, 0.0f), XMFLOAT4(cor) };
 
@@ -65,7 +65,7 @@ void DXApp::Update()
 
 		if (count > 513)
 			cor = XMFLOAT4(Colors::White);
-		
+
 		// Reincia buffer
 		delete vertices;
 
@@ -85,23 +85,25 @@ void DXApp::Update()
 
 	if (input->KeyPress(VK_RETURN))
 	{
-		if ((2 * count) - 2 > vMax)
+		if (count < 2)
+			Debug("Número de vértices insuficiente");
+		else if((2 * count) - 2 > vMax)
 			Debug("Tamanho de buffer insuficiente");
-		else{
-		
-			Vertex * placeholder = new Vertex[vMax];
+		else {
+
+			Vertex* placeholder = new Vertex[vMax];
 			uint phCount = 0;
 			for (uint i = 0; i < count - 1; ++i)
 			{
-				float x = vertices[i].Pos.x * 0.75f + vertices[i+1].Pos.x * 0.25f;
-				float y = vertices[i].Pos.y * 0.75f + vertices[i+1].Pos.y * 0.25f;
+				float x = vertices[i].Pos.x * 0.75f + vertices[i + 1].Pos.x * 0.25f;
+				float y = vertices[i].Pos.y * 0.75f + vertices[i + 1].Pos.y * 0.25f;
 
-				placeholder[phCount] = {XMFLOAT3(x, y, 0.0f), cor};
+				placeholder[phCount] = { XMFLOAT3(x, y, 0.0f), cor };
 				++phCount;
 
 				x = vertices[i].Pos.x * 0.25f + vertices[i + 1].Pos.x * 0.75f;
 				y = vertices[i].Pos.y * 0.25f + vertices[i + 1].Pos.y * 0.75f;
-			
+
 				placeholder[phCount] = { XMFLOAT3(x, y, 0.0f), cor };
 				++phCount;
 			}
@@ -131,13 +133,13 @@ void DXApp::Display()
 	graphics->Clear(pipelineState);
 
 	graphics->CommandList()->SetGraphicsRootSignature(rootSignature);
-	graphics->CommandList()->IASetVertexBuffers(0,1, geometry->VertexBufferView());
+	graphics->CommandList()->IASetVertexBuffers(0, 1, geometry->VertexBufferView());
 	graphics->CommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
 
 	graphics->CommandList()->DrawInstanced(count, 1, 0, 0);
 
 	graphics->Present();
-	
+
 }
 
 void DXApp::Finalize()
@@ -189,7 +191,7 @@ void DXApp::BuildGeometry()
 
 void DXApp::BuildRootSignature()
 {
-	
+
 	D3D12_ROOT_SIGNATURE_DESC desc = {};
 	desc.NumParameters = 0;
 	desc.pParameters = nullptr;
@@ -200,17 +202,17 @@ void DXApp::BuildRootSignature()
 	ID3DBlob* serializedRootSig = nullptr;
 	ID3DBlob* error = nullptr;
 
-	
+
 	ThrowIfFailed(D3D12SerializeRootSignature(
-		&desc, 
-		D3D_ROOT_SIGNATURE_VERSION_1, 
-		&serializedRootSig, 
+		&desc,
+		D3D_ROOT_SIGNATURE_VERSION_1,
+		&serializedRootSig,
 		&error));
 
 	graphics->Device()->CreateRootSignature(
-		0, 
-		serializedRootSig->GetBufferPointer(), 
-		serializedRootSig->GetBufferSize(), 
+		0,
+		serializedRootSig->GetBufferPointer(),
+		serializedRootSig->GetBufferSize(),
 		IID_PPV_ARGS(&rootSignature));
 }
 
@@ -238,15 +240,15 @@ void DXApp::BuildPipelineState()
 	D3D12_BLEND_DESC blend = {};
 	blend.AlphaToCoverageEnable = FALSE;
 	blend.IndependentBlendEnable = FALSE;
-	const D3D12_RENDER_TARGET_BLEND_DESC defaultBlendRT = 
+	const D3D12_RENDER_TARGET_BLEND_DESC defaultBlendRT =
 	{
-		FALSE, FALSE, 
+		FALSE, FALSE,
 		D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
 		D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
 		D3D12_LOGIC_OP_NOOP,
 		D3D12_COLOR_WRITE_ENABLE_ALL
 	};
-	for(uint i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i )
+	for (uint i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
 		blend.RenderTarget[i] = defaultBlendRT;
 
 
@@ -271,7 +273,7 @@ void DXApp::BuildPipelineState()
 	DSdesc.StencilEnable = FALSE;
 	DSdesc.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
 	DSdesc.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
-	const D3D12_DEPTH_STENCILOP_DESC defaultDSop = 
+	const D3D12_DEPTH_STENCILOP_DESC defaultDSop =
 	{ D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS };
 	DSdesc.FrontFace = defaultDSop;
 	DSdesc.BackFace = defaultDSop;
@@ -290,7 +292,7 @@ void DXApp::BuildPipelineState()
 	desc.NumRenderTargets = 1;
 	desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;;
-	desc.SampleDesc = {  graphics->Antialiasing(), graphics->Quality()};
+	desc.SampleDesc = { graphics->Antialiasing(), graphics->Quality() };
 	desc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
 	graphics->Device()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipelineState));

@@ -11,3 +11,7 @@ Aqui estão todos os arquivos de configuração básica para utilizar dentro de 
 
 Projeto relacionado ao primeiro trabalho prático apresentado à turma do período.
 A partir de um conjunto de vértices, o programa irá subdividí-los, para gerar curvas de Bézier, a partir do algoritmo de Chaikin.
+
+* **GCModelo**
+
+Projeto-base usado como template para visual studio, em conjunto com o projeto DXUT.

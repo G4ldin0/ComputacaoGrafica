@@ -36,7 +36,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	}
 	catch (Error& e)
 	{
-		MessageBox(nullptr, e.ToString().data(), "DXGI DXUT", MB_OK);
+		MessageBox(nullptr, e.ToString().data() , "DXGI DXUT", MB_OK);
 		return 0;
 	}
 }

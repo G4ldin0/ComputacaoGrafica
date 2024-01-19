@@ -1,4 +1,5 @@
 #pragma once
+
 #include <App.h>
 #include <Mesh.h>
 #include <DirectXMath.h>
@@ -8,13 +9,12 @@ struct Vertex
 {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Color;
-}; 
+};
 
 class DXApp : public App
 {
-private:
-	ID3D12RootSignature* rootSignature = nullptr;
 	ID3D12PipelineState* pipelineState = nullptr;
+	ID3D12RootSignature* rootSignature = nullptr;
 
 	Mesh* geometry = nullptr;
 
@@ -27,18 +27,22 @@ private:
 	Vertex* vertices;
 
 
-public:
-	void Init();
-	void Update();
+	// Herdado por meio de App
+	void Init() override;
+	void Update() override;
 	void Display();
-	void Finalize();
+	void Finalize() override;
 	void OnPause() override;
+
+	// Configura assinatura raiz da GPU
+	void BuildRootSignature();
+
+	// Configura estados de função fixa e indexa Shaders do Pipeline
+	void BuildPipelineState();
+
+	void BuildGeometry();
 
 	void Debug(const char* t);
 	void UpdateBuffer();
-
-	void BuildGeometry();
-	void BuildRootSignature();
-	void BuildPipelineState();
-
 };
+
