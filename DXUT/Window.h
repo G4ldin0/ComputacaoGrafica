@@ -43,6 +43,7 @@ public:
     int CenterY() const;                                    // retorna o centro da janela no eixo y
     string Title() const;                                   // retorna título da janela
     COLORREF Color() const;                                 // retorna a cor de fundo da janela
+    float AspectRatio() const;                              // retorna o aspect ratio da janela
 
     void Icon(const uint icon);                             // define o ícone da janela
     void Cursor(const uint cursor);                         // define o cursor da janela
@@ -114,6 +115,11 @@ inline string Window::Title() const
 inline COLORREF Window::Color() const
 {
     return windowColor;
+}
+
+inline float Window::AspectRatio() const
+{
+    return windowWidth / float(windowHeight);
 }
 
 // ----------------------------------------------------------
