@@ -16,19 +16,28 @@ struct Mesh
 
 	// buffers na CPU
 	ID3DBlob* vertexBufferCPU;
+	ID3DBlob* indexBufferCPU;
 
 	// buffers de Upload CPU -> GPU
 	ID3D12Resource* vertexBufferUpload;
+	ID3D12Resource* indexBufferUpload;
+
 
 	// buffers na GPU
 	ID3D12Resource* vertexBufferGPU;
+	ID3D12Resource* indexBufferGPU;
 
 	// descritor do vertex buffer
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
 	// caracteristicas dos vertex buffers
 	uint vertexByteStride;
 	uint vertexBufferSize;
+
+	// caracteristicas dos index buffers
+	DXGI_FORMAT indexFormat;
+	uint indexBufferSize;
 
 	// construtor e destrutor
 	Mesh(string name);
@@ -36,6 +45,7 @@ struct Mesh
 
 	// retorna descritor (view) do Vertex Buffer
 	D3D12_VERTEX_BUFFER_VIEW * VertexBufferView();
+	D3D12_INDEX_BUFFER_VIEW * IndexBufferView();
 
 };
 

@@ -1,3 +1,9 @@
+cbuffer cbPerObject : register(b0)
+{
+    float4x4 worldViewProj;
+}
+
+
 struct vertexIn
 {
     float3 pos : POSITION;
@@ -13,7 +19,7 @@ struct vertexOut
 vertexOut main( vertexIn pIn )
 {
     vertexOut vout;
-    vout.posH = float4(pIn.pos, 1.0f);
+    vout.posH = mul(float4(pIn.pos, 1.0f), worldViewProj);
     vout.color = pIn.color;
     return vout;
 }

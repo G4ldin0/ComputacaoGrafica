@@ -24,6 +24,7 @@
     <ProjectGuid>{375a14a3-7f8e-4548-ba66-cd9560fc4374}</ProjectGuid>
     <RootNamespace>ProjecaoPerspectiva</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>PrimeiraGeometria</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

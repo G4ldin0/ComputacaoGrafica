@@ -9,4 +9,15 @@ using llong = long long;
 using ullong = unsigned long long;
 using uint = unsigned int;
 
+// formatos de geometria
+enum GeometryTypes
+{
+	UNKNOWN_T,
+	BOX_T,
+	CYLINDER_T,
+	SHPERE_T,
+	GEOSPHERE_T,
+	GRID_T,
+	QUAD_T
+};
 #endif
