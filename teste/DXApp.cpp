@@ -1,19 +1,18 @@
 #include "DXApp.h"
-#include <Error.h>
 
 void DXApp::Init()
 {
 
 	theta = XM_PIDIV4;
-	phi = -XM_PIDIV4;
+	phi = -XM_PIDIV2;
 	radius = 5.0f;
 
-	mouseX = (float) input->MouseX();
-	mouseY = (float) input->MouseY();
+	mouseX = (float)input->MouseX();
+	mouseY = (float)input->MouseY();
 
-	worldPos = {0.0f, 0.0f, 0.0f};
+	worldPos = { 0.0f, 0.0f, 0.0f };
 
-	World = View = 
+	World = View =
 	{
 	1.0f, 0.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 0.0f,
@@ -40,7 +39,7 @@ void DXApp::Init()
 void DXApp::Update()
 {
 
-	if(input->KeyPress(VK_ESCAPE))
+	if (input->KeyPress(VK_ESCAPE))
 		window->Close();
 
 	if (input->KeyDown('A'))
@@ -52,9 +51,9 @@ void DXApp::Update()
 	if (input->KeyDown('S'))
 		worldPos.z -= 5 * frameTime;
 
-	if(input->KeyPress('I'))
+	if (input->KeyPress('I'))
 		lines = !lines;
-	if(input->KeyPress('R'))
+	if (input->KeyPress('R'))
 		rotateMode = !rotateMode;
 
 
@@ -70,7 +69,7 @@ void DXApp::Update()
 		theta += dx;
 		phi += dy;
 	}
-	if(input->KeyPress(VK_TAB))
+	if (input->KeyPress(VK_TAB))
 		worldPos = {};
 
 	radius += input->MouseWheel() * 0.05f;
@@ -81,8 +80,8 @@ void DXApp::Update()
 	mouseX = newmouseX;
 	mouseY = newmouseY;
 
-	if(rotateMode){
-		theta += XMConvertToRadians(50.0f * frameTime * (3.0f / radius * 5.0f ));
+	if (rotateMode) {
+		theta += XMConvertToRadians(50.0f * frameTime * (3.0f / radius * 5.0f));
 
 		rotateAngle = sinf(timer += frameTime) * 0.03f;
 		phi += XMConvertToRadians(rotateAngle);
@@ -104,7 +103,7 @@ void DXApp::Update()
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&View, view);
 
-	XMMATRIX world  = XMLoadFloat4x4(&World);
+	XMMATRIX world = XMLoadFloat4x4(&World);
 	//world *= XMMatrixTranslation(1.0f, 1.0f, 10.0f);
 	XMMATRIX proj = XMLoadFloat4x4(&Proj);
 	XMMATRIX WorldViewProj = world * view * proj;
@@ -113,8 +112,6 @@ void DXApp::Update()
 	ObjectConstants objConstant;
 	XMStoreFloat4x4(&objConstant.worldViewProj, XMMatrixTranspose(WorldViewProj));
 	memcpy(constantBufferData, &objConstant.worldViewProj, sizeof(ObjectConstants));
-
-
 
 }
 
@@ -165,7 +162,69 @@ void DXApp::OnPause()
 {
 }
 
-// ------------------------------------------------------------------------------------------------
+void DXApp::BuildGeometry()
+{
+	Grid geom(50.0f, 50.0f, 150.0f, 150.0f);
+
+		for (uint i = 0; i < geom.VertexCount(); ++i)
+		{
+			float x = geom.vertices[i].Position.x;
+			float z = geom.vertices[i].Position.z;
+
+			float p = sqrt(x * x + z * z);
+
+			float y = sinf(p * p) * 0.5f;
+
+			geom.vertices[i].Position.y = y;
+
+			if (y < -2.0f)
+				geom.vertices[i].Color = XMFLOAT4(Colors::SeaGreen);
+			else if (y < 0.0f)
+				geom.vertices[i].Color = XMFLOAT4(Colors::SandyBrown);
+			else if (y < 5.0f)
+				geom.vertices[i].Color = XMFLOAT4(Colors::GreenYellow);
+			else if (y < 10.0f)
+				geom.vertices[i].Color = XMFLOAT4(Colors::DarkGreen);
+			else
+				geom.vertices[i].Color = XMFLOAT4(Colors::Snow);
+		}
+
+
+	//Sphere geom(5.0f, 10, 10);
+
+	const uint vbSize = geom.VertexCount() * sizeof(Vertex);
+	const uint ibSize = geom.IndexCount() * sizeof(uint);
+
+
+	geometry = new Mesh("geometry");
+
+	geometry->vertexBufferSize = vbSize;
+	geometry->vertexByteStride = sizeof(Vertex);
+	geometry->indexFormat = DXGI_FORMAT_R32_UINT;
+	geometry->indexBufferSize = ibSize;
+
+	SubMesh geomSubMesh = { geom.IndexCount(), 0, 0};
+
+	geometry->subMesh["geo"] = geomSubMesh;
+
+
+	graphics->Allocate(vbSize, &geometry->vertexBufferCPU);
+	graphics->Allocate(UPLOAD, vbSize, &geometry->vertexBufferUpload);
+	graphics->Allocate(GPU, vbSize, &geometry->vertexBufferGPU);
+
+	graphics->Allocate(ibSize, &geometry->indexBufferCPU);
+	graphics->Allocate(UPLOAD, ibSize, &geometry->indexBufferUpload);
+	graphics->Allocate(GPU, ibSize, &geometry->indexBufferGPU);
+
+	graphics->Copy(geom.VertexData(), vbSize, geometry->vertexBufferCPU);
+	graphics->Copy(geom.IndexData(), ibSize, geometry->indexBufferCPU);
+
+
+	graphics->Copy(geom.VertexData(), vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
+	graphics->Copy(geom.IndexData(), ibSize, geometry->indexBufferUpload, geometry->indexBufferGPU);
+
+}
+
 
 void DXApp::BuildConstantBuffers()
 {
@@ -232,74 +291,6 @@ void DXApp::BuildConstantBuffers()
 
 }
 
-// ------------------------------------------------------------------------------------------------
-
-
-void DXApp::BuildGeometry()
-{
-
-	// Triangulo
-	Vertex vertices[5] =
-	{
-		{XMFLOAT3(-.5f, -.5f, -.5f), XMFLOAT4(Colors::Red)},
-		{XMFLOAT3(.5f, -.5f, -.5f), XMFLOAT4(Colors::Red)},
-
-		{XMFLOAT3(.5f, -.5f, .5f), XMFLOAT4(Colors::Green)},
-		{XMFLOAT3(-.5f, -.5f, .5f), XMFLOAT4(Colors::Green)},
-
-		{XMFLOAT3(0.0f, .75f, 0.0f), XMFLOAT4(Colors::Blue)},
-
-	};
-
-	ushort indices[18] =
-	{
-
-		1, 4, 0,
-		2, 4, 1,
-		3, 4, 2,
-		0, 4, 3,
-
-		0, 2, 1,
-		2, 0, 3
-
-	};
-
-
-	const uint vbSize = 5 * sizeof(Vertex);
-	const uint ibSize = 18 * sizeof(ushort);
-
-
-	geometry = new Mesh("geometry");
-
-	geometry->vertexBufferSize = vbSize;
-	geometry->vertexByteStride = sizeof(Vertex);
-	geometry->indexFormat = DXGI_FORMAT_R16_UINT;
-	geometry->indexBufferSize = ibSize;
-
-	SubMesh geomSubMesh = { 18, 0, 0 };
-
-	geometry->subMesh["geo"] = geomSubMesh;
-
-
-	graphics->Allocate(vbSize, &geometry->vertexBufferCPU);
-	graphics->Allocate(UPLOAD, vbSize, &geometry->vertexBufferUpload);
-	graphics->Allocate(GPU, vbSize, &geometry->vertexBufferGPU);
-
-	graphics->Allocate(ibSize, &geometry->indexBufferCPU);
-	graphics->Allocate(UPLOAD, ibSize, &geometry->indexBufferUpload);
-	graphics->Allocate(GPU, ibSize, &geometry->indexBufferGPU);
-
-	graphics->Copy(vertices, vbSize, geometry->vertexBufferCPU);
-	graphics->Copy(indices, ibSize, geometry->indexBufferCPU);
-
-
-	graphics->Copy(vertices, vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
-	graphics->Copy(indices, ibSize, geometry->indexBufferUpload, geometry->indexBufferGPU);
-
-	OutputDebugString("entrei aq");
-}
-
-
 void DXApp::BuildRootSignature()
 {
 
@@ -313,7 +304,7 @@ void DXApp::BuildRootSignature()
 	D3D12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameters[0].DescriptorTable = { 1, &cbvTable};
+	rootParameters[0].DescriptorTable = { 1, &cbvTable };
 
 	D3D12_ROOT_SIGNATURE_DESC desc = {};
 	desc.NumParameters = 1;
@@ -332,8 +323,8 @@ void DXApp::BuildRootSignature()
 		&serializedRootSig,
 		&error));
 
-	if (error != nullptr) 
-		OutputDebugString((char*) error->GetBufferPointer());
+	if (error != nullptr)
+		OutputDebugString((char*)error->GetBufferPointer());
 
 	graphics->Device()->CreateRootSignature(
 		0,

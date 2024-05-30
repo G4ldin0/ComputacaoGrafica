@@ -1,22 +1,14 @@
 #pragma once
 
 #include <App.h>
-#include <DirectXMath.h>
-#include <DirectXColors.h>
-#include <Mesh.h>
-#include <Timer.h>
+#include <Error.h>
 #include <Geometry.h>
-
+#include <Mesh.h>
+#include <DirectXMath.h>
 using namespace DirectX;
 
-//struct Vertex
-//{
-//	XMFLOAT4 Position;
-//	XMFLOAT4 Color;
-//};
-
 struct ObjectConstants {
-	XMFLOAT4X4 worldViewProj = 
+	XMFLOAT4X4 worldViewProj =
 	{
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -25,21 +17,25 @@ struct ObjectConstants {
 	};
 };
 
+
 class DXApp : public App
 {
 	ID3D12PipelineState* pipelineState = nullptr;
 	ID3D12RootSignature* rootSignature = nullptr;
-	Mesh* geometry = nullptr;
+
 
 	ID3D12DescriptorHeap* constantBufferHeap = nullptr;
 	ID3D12Resource* constantBufferUpload = nullptr;
 	BYTE* constantBufferData = nullptr;
+
 
 	XMFLOAT4X4 World = {};
 	XMFLOAT4X4 View = {};
 	XMFLOAT4X4 Proj = {};
 
 	XMFLOAT3 worldPos = {};
+
+	Mesh* geometry = nullptr;
 
 	float theta = 0;
 	float phi = 0;
@@ -50,9 +46,8 @@ class DXApp : public App
 
 	bool lines = false;
 	bool rotateMode = false;
-
-	float rotateAngle = 0;
-	float timer = 0;
+	float rotateAngle = 0.0f;
+	float timer = 0.0f;
 
 	// Herdado por meio de App
 	void Init() override;
@@ -61,14 +56,13 @@ class DXApp : public App
 	void Finalize() override;
 	void OnPause() override;
 
-
-	void BuildConstantBuffers();
-
 	// Configura assinatura raiz da GPU
 	void BuildRootSignature();
 
 	// Configura estados de função fixa e indexa Shaders do Pipeline
 	void BuildPipelineState();
+
+	void BuildConstantBuffers();
 
 	void BuildGeometry();
 };

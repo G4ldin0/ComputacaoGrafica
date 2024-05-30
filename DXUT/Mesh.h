@@ -4,7 +4,16 @@
 #include <d3d12.h>
 #include "types.h"
 #include <string>
+#include <unordered_map>
 using std::string;
+using std::unordered_map;
+
+struct SubMesh
+{
+	uint indexCount = 0;
+	uint startLocation = 0;
+	uint baseVertexLocation = 0;
+};
 
 struct Mesh
 {
@@ -38,6 +47,9 @@ struct Mesh
 	// caracteristicas dos index buffers
 	DXGI_FORMAT indexFormat;
 	uint indexBufferSize;
+
+	// uma malha pode armazenar múltiplas sub-malhas
+	unordered_map<string, SubMesh> subMesh;
 
 	// construtor e destrutor
 	Mesh(string name);

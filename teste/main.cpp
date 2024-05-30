@@ -17,7 +17,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 		// configura a janela
 		engine->window->Mode(WINDOWED);
-		engine->window->Size(1366, 700);
+		engine->window->Size(1024, 600);
 		engine->window->Color(0, 0, 0);
 		engine->window->Title("DXGI DXUT");
 		engine->window->Icon(IDI_ICON);

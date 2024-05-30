@@ -20,12 +20,13 @@ class Geometry
 protected:
 	XMFLOAT3 position;								// posição da geometria
 	uint type;										// tipo da geometria
-	vector<Vertex> vertices;						// vértice de geometria
-	vector<ushort> indices;							// índice de geometria
-
+	
 	void Subdivide();								// subdivide os triângulos
 	
 public:
+	vector<Vertex> vertices;						// vértice de geometria
+	vector<uint> indices;							// índice de geometria
+	
 	Geometry();										// construtor
 	~Geometry();									// destrutor
 
@@ -54,7 +55,7 @@ public:
 	const Vertex* VertexData() const
 	{ return vertices.data(); }
 
-	const ushort* IndexData() const
+	const uint* IndexData() const
 	{ return indices.data(); }
 	
 	// retorna o número de vértices
@@ -76,7 +77,32 @@ public:
 class Cylinder : public Geometry {
 public:
 	Cylinder();
-	Cylinder(float bottom, float top, float height, uint sliceCount, uint StackCount);
+	Cylinder(float bottom, float top, float height, uint sliceCount, uint stackCount);
 };
+
+class Sphere : public Geometry {
+public:
+	Sphere();
+	Sphere(float radius, uint sliceCount, uint stackCount);
+};
+
+class GeoSphere : public Geometry {
+public:
+	GeoSphere();
+	GeoSphere(float radius, uint subdivisions);
+};
+
+class Grid : public Geometry {
+public:
+	Grid();
+	Grid(float width, float depth, uint m, uint n);
+};
+
+class Quad: public Geometry {
+public:
+	Quad();
+	Quad(float width, float height);
+};
+
 
 #endif

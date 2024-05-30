@@ -15,7 +15,7 @@ enum GeometryTypes
 	UNKNOWN_T,
 	BOX_T,
 	CYLINDER_T,
-	SHPERE_T,
+	SPHERE_T,
 	GEOSPHERE_T,
 	GRID_T,
 	QUAD_T
