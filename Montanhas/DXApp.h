@@ -9,15 +9,23 @@
 using namespace DirectX;
 
 struct ObjectConstants {
-XMFLOAT4X4 worldViewProj =
-{
-	1.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 0.0f, 0.0f,
-	0.0f, 0.0f, 1.0f, 0.0f,
-	0.0f, 0.0f, 0.0f, 1.0f
-};
+	XMFLOAT4X4 worldViewProj =
+		{
+			1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f
+		};
+
+		XMFLOAT3 CameraPos;
+		XMFLOAT3 LightColor;
+		XMFLOAT3 LightDirection;
 };
 
+struct NormalizedVertex : public Vertex
+{
+	XMFLOAT3 normal;
+};
 
 class DXApp : public App
 {
@@ -44,6 +52,8 @@ class DXApp : public App
 
 	bool rotateMode = false;
 	Timer timer;
+
+	XMFLOAT3 lightDirection = {};
 
 	// Herdado por meio de App
 	void Init() override;

@@ -7,6 +7,8 @@ void DXApp::Init()
 	phi = -XM_PIDIV4;
 	radius = 15.0f;
 
+	lightDirection = XMFLOAT3(1.0, -1.0f, 0.0f);
+
 	mouseX = input->MouseX();
 	mouseY = input->MouseY();
 	
@@ -72,6 +74,7 @@ void DXApp::Update()
 	radius = radius < 3.0f ? 3.0f : radius;
 
 
+
 	float x = radius * sinf(phi) * cosf(theta);
 	float z = radius * sinf(phi) * sinf(theta);
 	float y = radius * cosf(phi);
@@ -84,12 +87,17 @@ void DXApp::Update()
 	XMStoreFloat4x4(&View, view);
 
 	XMMATRIX world = rotateMode ? XMMatrixRotationY(float(timer.Elapsed())) : XMLoadFloat4x4(&World);
+	//XMMATRIX world = XMLoadFloat4x4(&World);
 	XMMATRIX proj = XMLoadFloat4x4(&Proj);
 	XMMATRIX WorldViewProj = world * view * proj;
 
 	ObjectConstants objConstant;
+	XMStoreFloat3(&objConstant.CameraPos, pos);
+	objConstant.LightDirection = XMFLOAT3(1.0f, -1.0f, 1.0f);
+	objConstant.LightColor = XMFLOAT3(0.1f, 0.9f, 0.5f);
+
 	XMStoreFloat4x4(&objConstant.worldViewProj, XMMatrixTranspose(WorldViewProj));
-	memcpy(constantBufferData, &objConstant.worldViewProj, sizeof(ObjectConstants));
+	memcpy(constantBufferData, &objConstant, sizeof(ObjectConstants));
 
 }
 
@@ -106,14 +114,12 @@ void DXApp::Draw()
 	graphics->CommandList()->IASetVertexBuffers(0, 1, geometry->VertexBufferView());
 	graphics->CommandList()->IASetIndexBuffer(geometry->IndexBufferView());
 
-	graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 
 	graphics->CommandList()->SetGraphicsRootDescriptorTable(0, constantBufferHeap->GetGPUDescriptorHandleForHeapStart());
 
 	graphics->CommandList()->DrawIndexedInstanced(geometry->subMesh["geo"].indexCount, 1, 0, 0, 0);
-
-
 
 
 
@@ -144,6 +150,8 @@ void DXApp::BuildGeometry()
 {
 	Grid geom(50.0f, 50.0f, 150.0f, 150.0f);
 
+	vector<NormalizedVertex> newList;
+
 	for (uint i = 0; i < geom.VertexCount(); ++i)
 	{
 		float x = geom.vertices[i].Position.x;
@@ -165,19 +173,37 @@ void DXApp::BuildGeometry()
 			geom.vertices[i].Color = XMFLOAT4(Colors::DarkGreen);
 		else
 			geom.vertices[i].Color = XMFLOAT4(Colors::Snow);
+
+
+		newList.push_back({geom.vertices[i].Position, geom.vertices[i].Color, XMFLOAT3()});
 	}
 
+	for (uint i = 0; i < geom.IndexCount() / 3.0f; ++i)
+	{
+		uint i0 = geom.indices[i*3 + 0];
+		uint i1 = geom.indices[i*3 + 1];
+		uint i2 = geom.indices[i*3 + 2];
+
+		XMVECTOR e0 = XMLoadFloat3(&geom.vertices[i1].Position) - XMLoadFloat3(&geom.vertices[i0].Position);
+		XMVECTOR e1 = XMLoadFloat3(&geom.vertices[i2].Position) - XMLoadFloat3(&geom.vertices[i0].Position);
+		XMVECTOR normal = XMVector3Cross(e0, e1);
+
+		XMStoreFloat3(&newList[i0].normal, XMLoadFloat3(&newList[i0].normal) + normal);
+		XMStoreFloat3(&newList[i1].normal, XMLoadFloat3(&newList[i1].normal) + normal);
+		XMStoreFloat3(&newList[i2].normal, XMLoadFloat3(&newList[i2].normal) + normal);
+
+	}
 
 	//Sphere geom(5.0f, 10, 10);
 
-	const uint vbSize = geom.VertexCount() * sizeof(Vertex);
+	const uint vbSize = geom.VertexCount() * sizeof(NormalizedVertex);
 	const uint ibSize = geom.IndexCount() * sizeof(uint);
 
 
 	geometry = new Mesh("geometry");
 
 	geometry->vertexBufferSize = vbSize;
-	geometry->vertexByteStride = sizeof(Vertex);
+	geometry->vertexByteStride = sizeof(NormalizedVertex);
 	geometry->indexFormat = DXGI_FORMAT_R32_UINT;
 	geometry->indexBufferSize = ibSize;
 
@@ -194,11 +220,11 @@ void DXApp::BuildGeometry()
 	graphics->Allocate(UPLOAD, ibSize, &geometry->indexBufferUpload);
 	graphics->Allocate(GPU, ibSize, &geometry->indexBufferGPU);
 
-	graphics->Copy(geom.VertexData(), vbSize, geometry->vertexBufferCPU);
+	graphics->Copy(newList.data(), vbSize, geometry->vertexBufferCPU);
 	graphics->Copy(geom.IndexData(), ibSize, geometry->indexBufferCPU);
 
 
-	graphics->Copy(geom.VertexData(), vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
+	graphics->Copy(newList.data(), vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
 	graphics->Copy(geom.IndexData(), ibSize, geometry->indexBufferUpload, geometry->indexBufferGPU);
 
 }
@@ -312,14 +338,15 @@ void DXApp::BuildRootSignature()
 
 void DXApp::BuildPipelineState()
 {
-	D3D12_INPUT_ELEMENT_DESC layout[2] =
+	D3D12_INPUT_ELEMENT_DESC layout[3] =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
 	};
 
 	D3D12_INPUT_LAYOUT_DESC layoutDesc = {};
-	layoutDesc.NumElements = 2;
+	layoutDesc.NumElements = 3;
 	layoutDesc.pInputElementDescs = layout;
 
 	ID3DBlob* vertexShader;
