@@ -1,19 +1,23 @@
 #include "DXApp.h"
 #include <Error.h>
+#include <Geometry.h>
+
+#include <sstream>
 
 void DXApp::Init()
 {
 
-	theta = XM_PIDIV4;
-	phi = -XM_PIDIV4;
-	radius = 5.0f;
+	theta = XM_PIDIV2;
+	phi = XM_PIDIV4;
+	radius = 10.0f;
 
-	mouseX = (float) input->MouseX();
-	mouseY = (float) input->MouseY();
+	mouseX = (float)input->MouseX();
+	mouseY = (float)input->MouseY();
 
-	worldPos = {0.0f, 0.0f, 0.0f};
 
-	World = View = 
+	worldPos = { 0.0f, 0.0f, 0.0f };
+
+	World = View =
 	{
 	1.0f, 0.0f, 0.0f, 0.0f,
 	0.0f, 1.0f, 0.0f, 0.0f,
@@ -21,11 +25,14 @@ void DXApp::Init()
 	0.0f, 0.0f, 0.0f, 1.0f
 	};
 
+	lightDirection = { 1.0f, 0.0f, 0.0f};
+
 	XMStoreFloat4x4(&Proj, XMMatrixPerspectiveFovLH(
-		XMConvertToRadians(30.0f),
+		XMConvertToRadians(45.0f),
 		window->AspectRatio(),
 		1.0f, 100.0f
 	));
+
 
 	graphics->ResetCommands();
 
@@ -35,13 +42,15 @@ void DXApp::Init()
 	BuildPipelineState();
 
 	graphics->SubmitCommands();
+
+	
 }
 
 void DXApp::Update()
 {
-
 	if(input->KeyPress(VK_ESCAPE))
-		window->Close();
+	window->Close();
+
 
 	if (input->KeyDown('A'))
 		worldPos.x += 5 * frameTime;
@@ -51,12 +60,6 @@ void DXApp::Update()
 		worldPos.z += 5 * frameTime;
 	if (input->KeyDown('S'))
 		worldPos.z -= 5 * frameTime;
-
-	if(input->KeyPress('I'))
-		lines = !lines;
-	if(input->KeyPress('R'))
-		rotateMode = !rotateMode;
-
 
 	float newmouseX = input->MouseX();
 	float newmouseY = input->MouseY();
@@ -70,216 +73,156 @@ void DXApp::Update()
 		theta += dx;
 		phi += dy;
 	}
-	if(input->KeyPress(VK_TAB))
-		worldPos = {};
 
 	radius += input->MouseWheel() * 0.05f;
 
-	radius = radius < 3.0f ? 3.0f : radius;
+	radius = radius < 3.0f ? 3.0f : (radius > 97.5f ? 97.5f : radius);
 
+	lightTheta += frameTime;
+	lightPhi += 1.25f * frameTime;
+
+	float lightX = lightDirection.x + 1.0f * sinf(lightPhi) * cosf(lightTheta);
+	float lightY = lightDirection.y + sinf(lightPhi);
+	float lightZ = lightDirection.z + 1.0f * sinf(lightPhi) * sinf(lightTheta);
+	XMVECTOR light = XMVectorSet(lightX, lightY, lightZ, .5f);
+
+	//std::stringstream ss;
+	//ss << lightX << ' ' << lightY << ' ' << lightZ << '\n';
+
+	//OutputDebugString(ss.str().c_str());
 
 	mouseX = newmouseX;
 	mouseY = newmouseY;
-
-	if(rotateMode){
-		theta += XMConvertToRadians(50.0f * frameTime * (3.0f / radius * 5.0f ));
-
-		rotateAngle = sinf(timer += frameTime) * 0.03f;
-		phi += XMConvertToRadians(rotateAngle);
-		OutputDebugString(std::to_string(rotateAngle).c_str());
-		OutputDebugString("\n");
-	}
-
-	phi = phi < 0.1f ? 0.1f : (phi > (XM_PI - 0.1f) ? XM_PI - 0.1f : phi);
-
 
 	float x = worldPos.x + radius * sinf(phi) * cosf(theta);
 	float z = worldPos.z + radius * sinf(phi) * sinf(theta);
 	float y = radius * cosf(phi);
 
-
 	XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
 	XMVECTOR target = XMLoadFloat3(&worldPos);
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&View, view);
 
-	XMMATRIX world  = XMLoadFloat4x4(&World);
-	//world *= XMMatrixTranslation(1.0f, 1.0f, 10.0f);
+	XMMATRIX world = XMLoadFloat4x4(&World);
 	XMMATRIX proj = XMLoadFloat4x4(&Proj);
 	XMMATRIX WorldViewProj = world * view * proj;
 
 
 	ObjectConstants objConstant;
 	XMStoreFloat4x4(&objConstant.worldViewProj, XMMatrixTranspose(WorldViewProj));
+	XMStoreFloat3(&objConstant.cameraPos, pos);
+	XMStoreFloat3(&objConstant.ambientLight, light);
 	memcpy(constantBufferData, &objConstant.worldViewProj, sizeof(ObjectConstants));
-
 
 
 }
 
 void DXApp::Draw()
 {
-
 	graphics->Clear(pipelineState);
 
-
-	ID3D12DescriptorHeap* descriptorHeaps[] = { constantBufferHeap };
-	graphics->CommandList()->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+	graphics->CommandList()->SetDescriptorHeaps(1, &constantBufferHeap);
 
 	graphics->CommandList()->SetGraphicsRootSignature(rootSignature);
 	graphics->CommandList()->IASetVertexBuffers(0, 1, geometry->VertexBufferView());
 	graphics->CommandList()->IASetIndexBuffer(geometry->IndexBufferView());
-
-	if (lines)
-		graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINELIST);
-	else
-		graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	graphics->CommandList()->SetGraphicsRootDescriptorTable(0, constantBufferHeap->GetGPUDescriptorHandleForHeapStart());
 
-	graphics->CommandList()->DrawIndexedInstanced(geometry->subMesh["geo"].indexCount, 1, 0, 0, 0);
+	graphics->CommandList()->DrawIndexedInstanced(geometry->subMesh["box"].indexCount, 1, 0, 0, 0);
 
-
-
-
-
-	// apresenta o backbuffer na tela
 	graphics->Present();
-
 }
 
 void DXApp::Finalize()
 {
-
-	rootSignature->Release();
 	pipelineState->Release();
-	constantBufferUpload->Release();
-	constantBufferHeap->Release();
+	rootSignature->Release();
 	delete geometry;
-
 }
 
 void DXApp::OnPause()
 {
 }
 
-// ------------------------------------------------------------------------------------------------
-
 void DXApp::BuildConstantBuffers()
 {
-	// descritor do buffer constante
-	D3D12_DESCRIPTOR_HEAP_DESC constantBufferHeapDesc = {};
-	constantBufferHeapDesc.NumDescriptors = 1;
-	constantBufferHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	constantBufferHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
+	cbvHeapDesc.NumDescriptors = 1;
+	cbvHeapDesc.NodeMask = 0;
+	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
+	graphics->Device()->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&constantBufferHeap));
 
-	// cria descritor para buffer constante
-	graphics->Device()->CreateDescriptorHeap(&constantBufferHeapDesc, IID_PPV_ARGS(&constantBufferHeap));
-
-	// propriedade da heap do buffer de upload
-	D3D12_HEAP_PROPERTIES uploadHeapProperties = {};
-	uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
-	uploadHeapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	uploadHeapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	uploadHeapProperties.CreationNodeMask = 1;
-	uploadHeapProperties.VisibleNodeMask = 1;
-
-	// o tamanho dos "constant buffer" precisam ser multiplos
-	// do tamanho de alocação mínima do hardware (256 bytes)
+	
 	uint constantBufferSize = (sizeof(ObjectConstants) + 255) & ~255;
 
+	OutputDebugString(std::to_string(constantBufferSize).c_str());
 
-	// criação do buffer de upload
-	D3D12_RESOURCE_DESC uploadBufferDesc = {};
-	uploadBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	uploadBufferDesc.Alignment = 0;
-	uploadBufferDesc.Width = constantBufferSize;
-	uploadBufferDesc.Height = 1;
-	uploadBufferDesc.DepthOrArraySize = 1;
-	uploadBufferDesc.MipLevels = 1;
-	uploadBufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	uploadBufferDesc.SampleDesc = { 1, 0 };
-	uploadBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	uploadBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	graphics->Allocate(UPLOAD, constantBufferSize, &constantBufferUpload);
 
-	graphics->Device()->CreateCommittedResource(
-		&uploadHeapProperties,
-		D3D12_HEAP_FLAG_NONE,
-		&uploadBufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&constantBufferUpload)
-	);
-
-	// endereço do buffer de upload da GPU
-	D3D12_GPU_VIRTUAL_ADDRESS uploadAdress = constantBufferUpload->GetGPUVirtualAddress();
+	D3D12_GPU_VIRTUAL_ADDRESS uploadAddress = constantBufferUpload->GetGPUVirtualAddress();
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	cbvDesc.BufferLocation = uploadAdress;
 	cbvDesc.SizeInBytes = constantBufferSize;
+	cbvDesc.BufferLocation = uploadAddress;
 
-	// cria um view para o buffer constante
 	graphics->Device()->CreateConstantBufferView(
 		&cbvDesc,
 		constantBufferHeap->GetCPUDescriptorHandleForHeapStart()
 	);
 
-	// mapeia a memória do upload buffer para um endereço acessível pela CPU
+
 	constantBufferUpload->Map(0, nullptr, reinterpret_cast<void**>(&constantBufferData));
 
 }
 
-// ------------------------------------------------------------------------------------------------
-
-
 void DXApp::BuildGeometry()
 {
+	
+	Sphere geom(5.0f, 10, 5);
 
-	// Triangulo
-	Vertex vertices[5] =
+	// Encontrando o vetor normal dos pixels
+	for (uint i = 0; i < geom.IndexCount() / 3.0f; i++)
 	{
-		{XMFLOAT3(-.5f, -.5f, -.5f), XMFLOAT4(Colors::Red)},
-		{XMFLOAT3(.5f, -.5f, -.5f), XMFLOAT4(Colors::Red)},
+		uint i0 = geom.indices[i * 3 + 0];
+		uint i1 = geom.indices[i * 3 + 1];
+		uint i2 = geom.indices[i * 3 + 2];
 
-		{XMFLOAT3(.5f, -.5f, .5f), XMFLOAT4(Colors::Green)},
-		{XMFLOAT3(-.5f, -.5f, .5f), XMFLOAT4(Colors::Green)},
+		XMVECTOR e0 = XMLoadFloat3(&geom.vertices[i1].Position) - XMLoadFloat3(&geom.vertices[i0].Position);
+		XMVECTOR e1 = XMLoadFloat3(&geom.vertices[i2].Position) - XMLoadFloat3(&geom.vertices[i0].Position);
+		XMVECTOR normal = XMVector3Cross(e0, e1);
+		
+		 XMStoreFloat3(&geom.vertices[i0].Normal, XMLoadFloat3(&geom.vertices[i0].Normal) + normal);
+		 XMStoreFloat3(&geom.vertices[i1].Normal, XMLoadFloat3(&geom.vertices[i1].Normal) + normal);
+		 XMStoreFloat3(&geom.vertices[i2].Normal, XMLoadFloat3(&geom.vertices[i2].Normal) + normal);
 
-		{XMFLOAT3(0.0f, .75f, 0.0f), XMFLOAT4(Colors::Blue)},
+	}
 
-	};
+	
 
-	ushort indices[18] =
-	{
-
-		1, 4, 0,
-		2, 4, 1,
-		3, 4, 2,
-		0, 4, 3,
-
-		0, 2, 1,
-		2, 0, 3
-
-	};
+	for(uint i = 0; i < geom.VertexCount(); i++)
+		XMStoreFloat3(&geom.vertices[i].Normal, XMVector3Normalize(XMLoadFloat3(&geom.vertices[i].Normal)));
+		
 
 
-	const uint vbSize = 5 * sizeof(Vertex);
-	const uint ibSize = 18 * sizeof(ushort);
+	uint vbSize = geom.VertexCount() * sizeof(Vertex);
+	uint ibSize = geom.IndexCount() * sizeof(uint);
 
-
-	geometry = new Mesh("geometry");
-
+	geometry = new Mesh("base");
 	geometry->vertexBufferSize = vbSize;
+	geometry->indexBufferSize= ibSize;
 	geometry->vertexByteStride = sizeof(Vertex);
-	geometry->indexFormat = DXGI_FORMAT_R16_UINT;
-	geometry->indexBufferSize = ibSize;
+	geometry->indexFormat = DXGI_FORMAT_R32_UINT;
 
-	SubMesh geomSubMesh = { 18, 0, 0 };
 
-	geometry->subMesh["geo"] = geomSubMesh;
+	SubMesh objMesh = {geom.IndexCount(), 0, 0};
 
+	geometry->subMesh["box"] = objMesh;
 
 	graphics->Allocate(vbSize, &geometry->vertexBufferCPU);
 	graphics->Allocate(UPLOAD, vbSize, &geometry->vertexBufferUpload);
@@ -287,36 +230,35 @@ void DXApp::BuildGeometry()
 
 	graphics->Allocate(ibSize, &geometry->indexBufferCPU);
 	graphics->Allocate(UPLOAD, ibSize, &geometry->indexBufferUpload);
-	graphics->Allocate(GPU, ibSize, &geometry->indexBufferGPU);
+	graphics->Allocate(GPU,ibSize, &geometry->indexBufferGPU);
 
-	graphics->Copy(vertices, vbSize, geometry->vertexBufferCPU);
-	graphics->Copy(indices, ibSize, geometry->indexBufferCPU);
+	graphics->Copy(geom.VertexData(), vbSize, geometry->vertexBufferCPU);
+	graphics->Copy(geom.IndexData(), ibSize, geometry->indexBufferCPU);
 
-
-	graphics->Copy(vertices, vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
-	graphics->Copy(indices, ibSize, geometry->indexBufferUpload, geometry->indexBufferGPU);
+	graphics->Copy(geom.VertexData(), vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
+	graphics->Copy(geom.IndexData(), ibSize, geometry->indexBufferUpload, geometry->indexBufferGPU);
 
 }
-
 
 void DXApp::BuildRootSignature()
 {
 
-	D3D12_DESCRIPTOR_RANGE cbvTable = {};
-	cbvTable.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	cbvTable.NumDescriptors = 1;
-	cbvTable.BaseShaderRegister = 0;
-	cbvTable.RegisterSpace = 0;
-	cbvTable.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	D3D12_DESCRIPTOR_RANGE range;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	range.NumDescriptors = 1;
+	range.BaseShaderRegister = 0;
+	range.RegisterSpace = 0;
+	range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-	D3D12_ROOT_PARAMETER rootParameters[1];
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameters[0].DescriptorTable = { 1, &cbvTable};
+	D3D12_ROOT_PARAMETER rootParameter;
+	rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter.DescriptorTable = { 1, &range };
+	rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
 
 	D3D12_ROOT_SIGNATURE_DESC desc = {};
 	desc.NumParameters = 1;
-	desc.pParameters = rootParameters;
+	desc.pParameters = &rootParameter;
 	desc.NumStaticSamplers = 0;
 	desc.pStaticSamplers = nullptr;
 	desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -331,8 +273,8 @@ void DXApp::BuildRootSignature()
 		&serializedRootSig,
 		&error));
 
-	if (error != nullptr) 
-		OutputDebugString((char*) error->GetBufferPointer());
+	if (error != nullptr)
+		OutputDebugString((char*)error->GetBufferPointer());
 
 	graphics->Device()->CreateRootSignature(
 		0,
@@ -343,14 +285,16 @@ void DXApp::BuildRootSignature()
 
 void DXApp::BuildPipelineState()
 {
-	D3D12_INPUT_ELEMENT_DESC layout[2] =
+
+	D3D12_INPUT_ELEMENT_DESC layout[3] =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
 	D3D12_INPUT_LAYOUT_DESC layoutDesc = {};
-	layoutDesc.NumElements = 2;
+	layoutDesc.NumElements = 3;
 	layoutDesc.pInputElementDescs = layout;
 
 	ID3DBlob* vertexShader;
@@ -378,8 +322,7 @@ void DXApp::BuildPipelineState()
 
 	D3D12_RASTERIZER_DESC rasterizerDesc = {};
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
-	//rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
-	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+	rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
 	rasterizerDesc.FrontCounterClockwise = FALSE;
 	rasterizerDesc.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 	rasterizerDesc.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
@@ -413,7 +356,7 @@ void DXApp::BuildPipelineState()
 	desc.RasterizerState = rasterizerDesc;
 	desc.DepthStencilState = DSdesc;
 	desc.InputLayout = layoutDesc;
-	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // Quero passar isto como parâmetro... tentar reconstruir a PSO em algum momento...
 	desc.NumRenderTargets = 1;
 	desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -424,4 +367,5 @@ void DXApp::BuildPipelineState()
 
 	vertexShader->Release();
 	pixelShader->Release();
+
 }

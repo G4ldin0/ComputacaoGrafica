@@ -88,7 +88,7 @@ Box::Box(float width, float height, float depth)
 	{
 		// front face
 		0,1,2,
-		1,2,3,
+		2,3,0,
 
 		// back face
 		4,7,5,
@@ -222,7 +222,7 @@ Sphere::Sphere(float radius, uint sliceCount, uint stackCount)
 	float phi = XM_PI / stackCount;
 	float theta = 2 * XM_PI / sliceCount;
 
-	vertices.push_back({ XMFLOAT3(0.0f, radius, 0.0f), XMFLOAT4(Colors::White) });
+	vertices.push_back({ XMFLOAT3(0.0f, radius, 0.0f), XMFLOAT4(Colors::Blue) });
 
 
 	for(uint i = 1; i <= stackCount - 1; ++i)
@@ -234,11 +234,11 @@ Sphere::Sphere(float radius, uint sliceCount, uint stackCount)
 			float x = cosf(j * theta) * sinf(phi * i) * radius;
 			float z = sinf(j * theta) * sinf(phi * i) * radius;
 
-			vertices.push_back({ XMFLOAT3(x, y, z), XMFLOAT4(Colors::Orange) });
+			vertices.push_back({ XMFLOAT3(x, y, z), XMFLOAT4(Colors::Blue) });
 		}
 	}
 
-	vertices.push_back({ XMFLOAT3(0.0f, -radius, 0.0f), XMFLOAT4(Colors::White) });
+	vertices.push_back({ XMFLOAT3(0.0f, -radius, 0.0f), XMFLOAT4(Colors::Blue) });
 	float center = vertices.size() - 1;
 
 	for (uint i = 1; i <= sliceCount; ++i)
