@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DXUT", "DXUT\DXUT.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CGModelo", "CGModelo\CGModelo.vcxproj", "{1C778AAA-F18A-4CBB-B311-BF2957369502}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CurvasBezier", "CurvasBezier\CurvasBezier.vcxproj", "{AD679FD4-7FFA-4396-A32B-2416F7757FBB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CurvasChaikin", "CurvasBezier\CurvasBezier.vcxproj", "{AD679FD4-7FFA-4396-A32B-2416F7757FBB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PrimeiraGeometria", "ProjecaoPerspectiva\ProjecaoPerspectiva.vcxproj", "{375A14A3-7F8E-4548-BA66-CD9560FC4374}"
 EndProject
