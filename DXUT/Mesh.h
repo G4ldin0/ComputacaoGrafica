@@ -41,7 +41,7 @@ struct Mesh
 	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
 	// caracteristicas dos vertex buffers
-	uint vertexByteStride;
+	uint vertexBufferStride;
 	uint vertexBufferSize;
 
 	// caracteristicas dos index buffers
@@ -53,6 +53,7 @@ struct Mesh
 
 	// construtor e destrutor
 	Mesh(string name);
+	Mesh(const void* vb, uint size, uint vbSize);
 	~Mesh();
 
 	// retorna descritor (view) do Vertex Buffer

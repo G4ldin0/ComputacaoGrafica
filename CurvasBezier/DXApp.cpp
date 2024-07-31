@@ -166,7 +166,7 @@ void DXApp::UpdateBuffer()
 	}
 
 	//Envia vetor vazio para buffer
-	graphics->Copy(vertices, geometry->vertexBufferSize, geometry->vertexBufferCPU);
+	//graphics->Copy(vertices, geometry->vertexBufferSize, geometry->vertexBufferCPU);
 	graphics->ResetCommands();
 	graphics->Copy(vertices, geometry->vertexBufferSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
 	graphics->SubmitCommands();
@@ -180,7 +180,7 @@ void DXApp::BuildGeometry()
 {
 	geometry = new Mesh("Lines");
 
-	geometry->vertexByteStride = sizeof(Vertex);
+	geometry->vertexBufferStride = sizeof(Vertex);
 	geometry->vertexBufferSize = vMax * sizeof(Vertex);
 
 	graphics->Allocate(geometry->vertexBufferSize, &geometry->vertexBufferCPU);

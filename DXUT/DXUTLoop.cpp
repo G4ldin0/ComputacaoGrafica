@@ -180,7 +180,7 @@ void DXApp::BuildGeometry()
 	geometry = new Mesh("Triangle");
 
 	// ajusta atributos da malha 3D
-	geometry->vertexByteStride = sizeof(Vertex);
+	geometry->vertexBufferStride = sizeof(Vertex);
 	geometry->vertexBufferSize = vbSize;
 
 	// aloca recursos para o vertex buffer

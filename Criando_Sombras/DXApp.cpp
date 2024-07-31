@@ -216,7 +216,7 @@ void DXApp::BuildGeometry()
 	geometry = new Mesh("base");
 	geometry->vertexBufferSize = vbSize;
 	geometry->indexBufferSize= ibSize;
-	geometry->vertexByteStride = sizeof(Vertex);
+	geometry->vertexBufferStride = sizeof(Vertex);
 	geometry->indexFormat = DXGI_FORMAT_R32_UINT;
 
 

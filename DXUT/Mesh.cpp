@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "Engine.h"
 
 // ------------------------------------------------------------------------------
 
@@ -18,9 +19,28 @@ Mesh::Mesh(string name)
 	ZeroMemory(&indexBufferView, sizeof(D3D12_INDEX_BUFFER_VIEW));
 	ZeroMemory(&indexFormat, sizeof(DXGI_FORMAT));
 
-    vertexByteStride = 0;
+    vertexBufferStride = 0;
     vertexBufferSize = 0;
 	indexBufferSize = 0;
+}
+
+// ------------------------------------------------------------------------------
+
+Mesh::Mesh(const void* vb, uint vbSize, uint vbStride) : vertexBufferSize(vbSize), vertexBufferStride(vbStride)
+{
+	// inicializa buffers
+	vertexBufferCPU = nullptr;
+	vertexBufferGPU = nullptr;
+	vertexBufferUpload = nullptr;
+
+	// aloca recursos para o vertex buffer
+	Engine::graphics->Allocate(vbSize, &vertexBufferCPU);
+	Engine::graphics->Allocate(UPLOAD, vbSize, &vertexBufferUpload);
+	Engine::graphics->Allocate(GPU, vbSize, &vertexBufferGPU);
+
+	// copia vértices para o buffer da GPU usando o buffer de Upload
+	Engine::graphics->Copy(vb, vbSize, vertexBufferCPU);
+	Engine::graphics->Copy(vb, vbSize, vertexBufferUpload, vertexBufferGPU);
 }
 
 // ------------------------------------------------------------------------------
@@ -41,7 +61,7 @@ Mesh::~Mesh()
 D3D12_VERTEX_BUFFER_VIEW* Mesh::VertexBufferView()
 {
 	vertexBufferView.BufferLocation = vertexBufferGPU->GetGPUVirtualAddress();
-	vertexBufferView.StrideInBytes = vertexByteStride;
+	vertexBufferView.StrideInBytes = vertexBufferStride;
 	vertexBufferView.SizeInBytes = vertexBufferSize;
 
 	return &vertexBufferView;
