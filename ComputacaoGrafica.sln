@@ -7,13 +7,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DXUT", "DXUT\DXUT.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CGModelo", "CGModelo\CGModelo.vcxproj", "{1C778AAA-F18A-4CBB-B311-BF2957369502}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CurvasChaikin", "CurvasBezier\CurvasBezier.vcxproj", "{AD679FD4-7FFA-4396-A32B-2416F7757FBB}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PrimeiraGeometria", "ProjecaoPerspectiva\ProjecaoPerspectiva.vcxproj", "{375A14A3-7F8E-4548-BA66-CD9560FC4374}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Montanhas", "Montanhas\Montanhas.vcxproj", "{1D84386B-ED6B-478A-9511-0C9EBFA27222}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CriandoSombras", "Criando_Sombras\Criando_Sombras.vcxproj", "{0A1F55ED-BB21-437F-8950-4B240923145B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CurvasChaikin", "CurvasChaikin\CurvasChaikin.vcxproj", "{AD679FD4-7FFA-4396-A32B-2416F7757FBB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,14 +39,6 @@ Global
 		{1C778AAA-F18A-4CBB-B311-BF2957369502}.Release|x64.Build.0 = Release|x64
 		{1C778AAA-F18A-4CBB-B311-BF2957369502}.Release|x86.ActiveCfg = Release|Win32
 		{1C778AAA-F18A-4CBB-B311-BF2957369502}.Release|x86.Build.0 = Release|Win32
-		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Debug|x64.ActiveCfg = Debug|x64
-		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Debug|x64.Build.0 = Debug|x64
-		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Debug|x86.ActiveCfg = Debug|Win32
-		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Debug|x86.Build.0 = Debug|Win32
-		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Release|x64.ActiveCfg = Release|x64
-		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Release|x64.Build.0 = Release|x64
-		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Release|x86.ActiveCfg = Release|Win32
-		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Release|x86.Build.0 = Release|Win32
 		{375A14A3-7F8E-4548-BA66-CD9560FC4374}.Debug|x64.ActiveCfg = Debug|x64
 		{375A14A3-7F8E-4548-BA66-CD9560FC4374}.Debug|x64.Build.0 = Debug|x64
 		{375A14A3-7F8E-4548-BA66-CD9560FC4374}.Debug|x86.ActiveCfg = Debug|Win32
@@ -71,6 +63,14 @@ Global
 		{0A1F55ED-BB21-437F-8950-4B240923145B}.Release|x64.Build.0 = Release|x64
 		{0A1F55ED-BB21-437F-8950-4B240923145B}.Release|x86.ActiveCfg = Release|Win32
 		{0A1F55ED-BB21-437F-8950-4B240923145B}.Release|x86.Build.0 = Release|Win32
+		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Debug|x64.ActiveCfg = Debug|x64
+		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Debug|x64.Build.0 = Debug|x64
+		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Debug|x86.ActiveCfg = Debug|Win32
+		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Debug|x86.Build.0 = Debug|Win32
+		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Release|x64.ActiveCfg = Release|x64
+		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Release|x64.Build.0 = Release|x64
+		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Release|x86.ActiveCfg = Release|Win32
+		{AD679FD4-7FFA-4396-A32B-2416F7757FBB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
