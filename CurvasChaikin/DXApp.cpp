@@ -291,7 +291,7 @@ void DXApp::BuildPipelineState()
 	desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
 	desc.NumRenderTargets = 1;
 	desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;;
+	desc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	desc.SampleDesc = { graphics->Antialiasing(), graphics->Quality() };
 	desc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 

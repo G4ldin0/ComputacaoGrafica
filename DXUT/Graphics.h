@@ -25,7 +25,7 @@ private:
     float bgColor[4];                                       // cor de fundo do back buffer
 
     // pipeline
-    ID3D12Device4* device;                                  // dispositivo gráfico
+    ID3D12Device8* device;                                  // dispositivo gráfico
     IDXGIFactory6* factory;                                 // interface principal da DXGI
     IDXGISwapChain1* swapChain;                             // swap chain
     uint backBufferIndex;                                   // índice do backbuffer atual

@@ -34,12 +34,10 @@ Mesh::Mesh(const void* vb, uint vbSize, uint vbStride) : vertexBufferSize(vbSize
 	vertexBufferUpload = nullptr;
 
 	// aloca recursos para o vertex buffer
-	Engine::graphics->Allocate(vbSize, &vertexBufferCPU);
 	Engine::graphics->Allocate(UPLOAD, vbSize, &vertexBufferUpload);
 	Engine::graphics->Allocate(GPU, vbSize, &vertexBufferGPU);
 
 	// copia vértices para o buffer da GPU usando o buffer de Upload
-	Engine::graphics->Copy(vb, vbSize, vertexBufferCPU);
 	Engine::graphics->Copy(vb, vbSize, vertexBufferUpload, vertexBufferGPU);
 }
 
