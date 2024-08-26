@@ -20,12 +20,7 @@ struct Mesh
 	// identificador para recuperar a malha pelo seu nome
 	string id;
 
-	// um Blob é usado para guardar dados de um tipo qualquer
-	// o cliente deve fazer o cast apropriado a partir do Blob
 
-	// buffers na CPU
-	ID3DBlob* vertexBufferCPU;
-	ID3DBlob* indexBufferCPU;
 
 	// buffers de Upload CPU -> GPU
 	ID3D12Resource* vertexBufferUpload;
@@ -51,11 +46,11 @@ struct Mesh
 	// uma malha pode armazenar múltiplas sub-malhas
 	unordered_map<string, SubMesh> subMesh;
 
-	// construtor e destrutor
-	Mesh(string name);
-	Mesh(uint size, uint vbSize);
-	Mesh(const void* vb, uint size, uint vbSize);
-	~Mesh();
+	Mesh();                                             // construtor
+	~Mesh();                                            // destrutor
+
+	void VertexBuffer(const void* vb, uint vbSize, uint vbStride);          // aloca e copia vértices para vertex buffer 
+	void IndexBuffer(const void* ib, uint ibSize, DXGI_FORMAT ibFormat);    // aloca e copia índices para index buffer 
 
 	// retorna descritor (view) do Vertex Buffer
 	D3D12_VERTEX_BUFFER_VIEW * VertexBufferView();
