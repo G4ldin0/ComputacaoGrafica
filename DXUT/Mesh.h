@@ -53,6 +53,7 @@ struct Mesh
 
 	// construtor e destrutor
 	Mesh(string name);
+	Mesh(uint size, uint vbSize);
 	Mesh(const void* vb, uint size, uint vbSize);
 	~Mesh();
 

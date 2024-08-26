@@ -26,6 +26,20 @@ Mesh::Mesh(string name)
 
 // ------------------------------------------------------------------------------
 
+
+Mesh::Mesh(uint vbSize, uint vbStride) : vertexBufferSize(vbSize), vertexBufferStride(vbStride)
+{
+	// inicializa buffers
+	vertexBufferGPU = nullptr;
+	vertexBufferUpload = nullptr;
+
+	// aloca recursos para o vertex buffer
+	Engine::graphics->Allocate(UPLOAD, vbSize, &vertexBufferUpload);
+	Engine::graphics->Allocate(GPU, vbSize, &vertexBufferGPU);
+}
+
+// ------------------------------------------------------------------------------
+
 Mesh::Mesh(const void* vb, uint vbSize, uint vbStride) : vertexBufferSize(vbSize), vertexBufferStride(vbStride)
 {
 	// inicializa buffers

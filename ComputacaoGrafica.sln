@@ -15,7 +15,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CriandoSombras", "Criando_S
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CurvasChaikin", "CurvasChaikin\CurvasChaikin.vcxproj", "{AD679FD4-7FFA-4396-A32B-2416F7757FBB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CurvasBezier", "..\CurvasBezier\CurvasBezier.vcxproj", "{11984075-5AF8-4A84-A33C-BEBBB243C51B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CurvasBezier", "CurvasBezier\CurvasBezier.vcxproj", "{11984075-5AF8-4A84-A33C-BEBBB243C51B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
