@@ -122,10 +122,10 @@ void DXApp::Update()
 void DXApp::Draw()
 {
 	graphics->Clear(pipelineState);
+	graphics->CommandList()->SetGraphicsRootSignature(rootSignature);
 
 	graphics->CommandList()->SetDescriptorHeaps(1, &constantBufferHeap);
 
-	graphics->CommandList()->SetGraphicsRootSignature(rootSignature);
 	graphics->CommandList()->IASetVertexBuffers(0, 1, geometry->VertexBufferView());
 	graphics->CommandList()->IASetIndexBuffer(geometry->IndexBufferView());
 	graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -214,30 +214,9 @@ void DXApp::BuildGeometry()
 	uint ibSize = geom.IndexCount() * sizeof(uint);
 
 	geometry = new Mesh("base");
-	geometry->vertexBufferSize = vbSize;
-	geometry->indexBufferSize= ibSize;
-	geometry->vertexBufferStride = sizeof(Vertex);
-	geometry->indexFormat = DXGI_FORMAT_R32_UINT;
-
-
-	SubMesh objMesh = {geom.IndexCount(), 0, 0};
-
-	geometry->subMesh["box"] = objMesh;
-
-	graphics->Allocate(vbSize, &geometry->vertexBufferCPU);
-	graphics->Allocate(UPLOAD, vbSize, &geometry->vertexBufferUpload);
-	graphics->Allocate(GPU, vbSize, &geometry->vertexBufferGPU);
-
-	graphics->Allocate(ibSize, &geometry->indexBufferCPU);
-	graphics->Allocate(UPLOAD, ibSize, &geometry->indexBufferUpload);
-	graphics->Allocate(GPU,ibSize, &geometry->indexBufferGPU);
-
-	graphics->Copy(geom.VertexData(), vbSize, geometry->vertexBufferCPU);
-	graphics->Copy(geom.IndexData(), ibSize, geometry->indexBufferCPU);
-
-	graphics->Copy(geom.VertexData(), vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
-	graphics->Copy(geom.IndexData(), ibSize, geometry->indexBufferUpload, geometry->indexBufferGPU);
-
+	geometry->VertexBuffer(geom.VertexData(), vbSize, sizeof(Vertex));
+	geometry->IndexBuffer(geom.IndexData(), ibSize, DXGI_FORMAT_R32_UINT);
+	geometry->subMesh["box"] = { geom.IndexCount(), 0, 0 };
 }
 
 void DXApp::BuildRootSignature()

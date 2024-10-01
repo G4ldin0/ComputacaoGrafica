@@ -27,6 +27,7 @@ vertexOut main( vertexIn pIn )
     float lightAmount = ((dot(pIn.normal, ambientLight) + 1.0f) / 1.5f);
     //float lightAmount = 1;
     vout.color = pIn.color * lightAmount;
+    vout.normal = pIn.normal;
     //vout.color = float4(ambientLight, 1.0f);
     //vout.normal = pIn.normal;
     return vout;
