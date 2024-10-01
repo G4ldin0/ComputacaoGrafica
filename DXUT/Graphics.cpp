@@ -563,9 +563,9 @@ void Graphics::Allocate(uint type, uint sizeInBytes, ID3D12Resource** resource)
 {
 	// propriedades da heap do buffer
 	D3D12_HEAP_PROPERTIES bufferProp = {};
-	bufferProp.Type = D3D12_HEAP_TYPE_DEFAULT;
-	if (type == UPLOAD)
-		bufferProp.Type = D3D12_HEAP_TYPE_UPLOAD;
+	bufferProp.Type = D3D12_HEAP_TYPE_UPLOAD;
+	if (type == GPU)
+		bufferProp.Type = D3D12_HEAP_TYPE_DEFAULT;	
 	bufferProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
 	bufferProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 	bufferProp.CreationNodeMask = 1;
@@ -585,10 +585,10 @@ void Graphics::Allocate(uint type, uint sizeInBytes, ID3D12Resource** resource)
 	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	D3D12_RESOURCE_STATES initState = D3D12_RESOURCE_STATE_COMMON;
+	D3D12_RESOURCE_STATES initState = D3D12_RESOURCE_STATE_GENERIC_READ;
 
-	if (type == UPLOAD)
-		initState = D3D12_RESOURCE_STATE_GENERIC_READ;
+	if (type == GPU)
+		initState = D3D12_RESOURCE_STATE_COMMON;
 	
 
 	// cria um buffer para o recurso

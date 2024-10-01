@@ -13,7 +13,6 @@ struct Vertex
 {
 	XMFLOAT3 Position;
 	XMFLOAT4 Color;
-	XMFLOAT3 Normal; // Adiç
 };
 
 class Geometry

@@ -10,7 +10,7 @@
 #include "Types.h"      // tipos específicos da engine
 #include <D3DCompiler.h>
 
-enum AllocationType {GPU, UPLOAD};
+enum AllocationType {GPU, UPLOAD, CBUFFER};
 
 // --------------------------------------------------------------------------------
 

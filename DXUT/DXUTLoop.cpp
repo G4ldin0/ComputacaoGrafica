@@ -184,12 +184,12 @@ void DXApp::BuildGeometry()
 	geometry->vertexBufferSize = vbSize;
 
 	// aloca recursos para o vertex buffer
-	graphics->Allocate(vbSize, &geometry->vertexBufferCPU);
+	//graphics->Allocate(vbSize, &geometry->vertexBufferCPU);
 	graphics->Allocate(UPLOAD, vbSize, &geometry->vertexBufferUpload);
 	graphics->Allocate(GPU, vbSize, &geometry->vertexBufferGPU);
 
 	// copia vértices para o armazenamento local da malha
-	graphics->Copy(vertices, vbSize, geometry->vertexBufferCPU);
+	//graphics->Copy(vertices, vbSize, geometry->vertexBufferCPU);
 
 	// copia vértices para o buffer da GPU usando o buffer de Upload
 	graphics->Copy(vertices, vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);

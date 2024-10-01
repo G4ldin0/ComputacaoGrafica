@@ -1,7 +1,10 @@
 #include "Mesh.h"
 #include "Engine.h"
+#include "Error.h"
 
 // ------------------------------------------------------------------------------
+
+
 
 Mesh::Mesh()
 {
@@ -16,6 +19,30 @@ Mesh::Mesh()
     ZeroMemory(&indexBufferView, sizeof(D3D12_INDEX_BUFFER_VIEW));
     indexBufferSize = 0;
     ZeroMemory(&indexFormat, sizeof(DXGI_FORMAT));
+
+    cbufferHeap = nullptr;
+    cBufferUpload = nullptr;
+    cbufferData = nullptr;
+    cbufferDescriptorSize = 0;
+    cbufferElementSize = 0;
+}
+
+
+Mesh::Mesh(string name)
+{
+    id = name;
+
+    vertexBufferGPU = nullptr;
+    vertexBufferUpload = nullptr;
+
+    indexBufferGPU = nullptr;
+    indexBufferUpload = nullptr;
+
+    ZeroMemory(&vertexBufferView, sizeof(D3D12_VERTEX_BUFFER_VIEW));
+    ZeroMemory(&indexBufferView, sizeof(D3D12_INDEX_BUFFER_VIEW));
+    ZeroMemory(&indexFormat, sizeof(DXGI_FORMAT));
+    vertexBufferSize = 0;
+    indexBufferSize = 0;
 }
 
 // -------------------------------------------------------------------------------
@@ -60,6 +87,69 @@ void Mesh::IndexBuffer(const void* ib, uint ibSize, DXGI_FORMAT ibFormat)
     Engine::graphics->Copy(ib, ibSize, indexBufferUpload, indexBufferGPU);
 }
 
+void Mesh::ConstantBuffer(uint objSize, uint ObjCount)
+{
+    // ---------------
+    // Constant Buffer  
+    // ---------------
+
+    // o tamanho dos constant buffers precisam ser múltiplos 
+    // do tamanho de alocação mínima do hardware (256 bytes)
+    cbufferElementSize = (objSize + 255) & ~255;
+
+    // aloca recursos para o constant buffer
+    Engine::graphics->Allocate(CBUFFER, cbufferElementSize * ObjCount, &cBufferUpload);
+
+    // mapeia memória do upload buffer para um endereço acessível pela CPU
+    cBufferUpload->Map(0, nullptr, reinterpret_cast<void**>(&cbufferData));
+
+    // ----------------
+    // Descriptor Heaps 
+    // ----------------
+
+    // descritor do buffer constante
+    D3D12_DESCRIPTOR_HEAP_DESC cbHeapDesc = {};
+    cbHeapDesc.NumDescriptors = ObjCount;
+    cbHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    cbHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+    // cria heap de descritores para buffer constante
+    Engine::graphics->Device()->CreateDescriptorHeap(
+        &cbHeapDesc,
+        IID_PPV_ARGS(&cbufferHeap));
+
+    // tamanho de um descritor de constant buffer
+    cbufferDescriptorSize =
+        Engine::graphics->Device()->GetDescriptorHandleIncrementSize(
+            D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    // precisa de um descritor para cada objeto
+    for (uint i = 0; i < ObjCount; ++i)
+    {
+        // desloca para o endereço do i-ésimo objeto no buffer constante
+        D3D12_GPU_VIRTUAL_ADDRESS cbAddress = cBufferUpload->GetGPUVirtualAddress();
+        cbAddress += i * cbufferElementSize;
+
+        // desloca para o endereço do i-ésimo objeto na heap de descritores
+        D3D12_CPU_DESCRIPTOR_HANDLE handle = cbufferHeap->GetCPUDescriptorHandleForHeapStart();
+        handle.ptr += i * cbufferDescriptorSize;
+
+        // informações do constant buffer
+        D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+        cbvDesc.BufferLocation = cbAddress;
+        cbvDesc.SizeInBytes = cbufferElementSize;
+
+        // cria uma view para o buffer constante
+        Engine::graphics->Device()->CreateConstantBufferView(&cbvDesc, handle);
+    }
+}
+
+
+void Mesh::CopyConstants(const void* cbData, uint cbIndex)
+{
+    memcpy(cbufferData + (cbIndex * cbufferElementSize), cbData, cbufferElementSize);
+}
+
 // ------------------------------------------------------------------------------
 
 D3D12_VERTEX_BUFFER_VIEW* Mesh::VertexBufferView()
@@ -82,3 +172,14 @@ D3D12_INDEX_BUFFER_VIEW* Mesh::IndexBufferView()
 	return &indexBufferView;
 }
 
+ID3D12DescriptorHeap* Mesh::ConstantBufferHeap()
+{
+    return cbufferHeap;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE Mesh::ConstantBufferHandle(uint cbIndex)
+{
+    D3D12_GPU_DESCRIPTOR_HANDLE handle = cbufferHeap->GetGPUDescriptorHandleForHeapStart();
+    handle.ptr += cbIndex * cbufferDescriptorSize;
+    return handle;
+}

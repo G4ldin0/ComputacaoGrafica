@@ -40,6 +40,7 @@
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="types.h" />
