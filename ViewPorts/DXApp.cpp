@@ -1,68 +1,50 @@
 #include "DXApp.h"
+using namespace DirectX;
 
 // ------------------------------------------------------------------------------
 
 void Cube::Init()
 {
+
+    // controla rotação do cubo
+    theta = XM_PIDIV4;
+    phi = XM_PIDIV4;
+    radius = 10.0f;
+
+    // pega última posição do mouse
+    lastMousePosX = (float)input->MouseX();
+    lastMousePosY = (float)input->MouseY();
+
     graphics->ResetCommands();
 
     // ---------------------------------------
 
-    Vertex vertices[VertexCount] =
-    {
-        // frente
+    Vertex vertices[VertexCount] = {
         { XMFLOAT4(-0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 0
-        { XMFLOAT4(-0.5f,  0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 1
-        { XMFLOAT4(0.5f,  0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 2
-
-        { XMFLOAT4(-0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 0
-        { XMFLOAT4(0.5f,  0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 2
-        { XMFLOAT4(0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 3
-
-        // lateral direita
-        { XMFLOAT4(+0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 3
+        { XMFLOAT4(-0.5f, +0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 1
         { XMFLOAT4(+0.5f, +0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 2
-        { XMFLOAT4(+0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 6
-
-        { XMFLOAT4(+0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 3
-        { XMFLOAT4(+0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 6
-        { XMFLOAT4(+0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 7
-
-        // lateral esquerda
-        { XMFLOAT4(-0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 4
-        { XMFLOAT4(-0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 5
-        { XMFLOAT4(-0.5f, +0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 1
-
-        { XMFLOAT4(-0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 4
-        { XMFLOAT4(-0.5f, +0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 1
-        { XMFLOAT4(-0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 0
-
-        // trás
-        { XMFLOAT4(+0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 7
-        { XMFLOAT4(+0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 6
-        { XMFLOAT4(-0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 5
-
-        { XMFLOAT4(+0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 7
-        { XMFLOAT4(-0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 5
-        { XMFLOAT4(-0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 4
-
-        // cima
-        { XMFLOAT4(-0.5f, +0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 1
-        { XMFLOAT4(-0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 5
-        { XMFLOAT4(+0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 6
-
-        { XMFLOAT4(-0.5f, +0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 1
-        { XMFLOAT4(+0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 6
-        { XMFLOAT4(+0.5f, +0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Red) },    // 2
-
-        // baixo
-        { XMFLOAT4(-0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 4
-        { XMFLOAT4(-0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 0
         { XMFLOAT4(+0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 3
 
-        { XMFLOAT4(-0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 4
-        { XMFLOAT4(+0.5f, -0.5f, -0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 3
-        { XMFLOAT4(+0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) }, // 7
+        { XMFLOAT4(-0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) }, // 4
+        { XMFLOAT4(-0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) },    // 5
+        { XMFLOAT4(+0.5f, +0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Yellow) },    // 6
+        { XMFLOAT4(+0.5f, -0.5f, +0.5f, 1.0f), XMFLOAT4(Colors::Red) }, // 7
+
+    };
+
+    ushort indices[IndexCount] = {
+        0, 1, 2,    // frente
+        0, 2, 3,    
+        3, 2, 6,    // lateral direita
+        3, 6, 7,    
+        4, 5, 1,    // lateral esquerda 
+        4, 1, 0, 
+        7, 6, 5,    // trás
+        7, 5, 4,
+        1, 5, 6,    // cima
+        1, 6, 2,
+        4, 0, 3,    // baixo
+        4, 3, 7
     };
 
     // --------------------------------------
@@ -70,10 +52,12 @@ void Cube::Init()
     // --------------------------------------
 
     // matriz de mundo
-    XMMATRIX S = XMMatrixScaling(5.0f, 5.0f, 5.0f);
-    XMMATRIX R = XMMatrixRotationY(XMConvertToRadians(45));  // 30 graus
-    XMMATRIX T = XMMatrixTranslation(0, 0, 1);
+    XMMATRIX S = DirectX::XMMatrixScaling(1.0f, 1.0f, 1.0f);
+    XMMATRIX R = DirectX::XMMatrixRotationX(XMConvertToRadians(30));  // 30 graus
+    XMMATRIX T = DirectX::XMMatrixTranslation(0, 0, 0);
     XMMATRIX W = S * R * T;
+
+    XMStoreFloat4x4(&matrixWorld, W);
 
     // campo de visão em graus
     float fovAngle = 45;
@@ -91,58 +75,91 @@ void Cube::Init()
 
     XMVECTOR target = XMVectorZero();
 
-    XMMATRIX V1 = XMMatrixLookAtLH(pos1, target, up1);
-    XMMATRIX V2 = XMMatrixLookAtLH(pos2, target, up2);
-    XMMATRIX V3 = XMMatrixLookAtLH(pos3, target, up3);
-    XMMATRIX V4 = XMMatrixLookAtLH(pos4, target, up4);
+    XMMATRIX V1 = DirectX::XMMatrixLookAtLH(pos1, target, up1);
+    XMStoreFloat4x4(&matrixView, V1);
+    XMMATRIX V2 = DirectX::XMMatrixLookAtLH(pos2, target, up2);
+    XMMATRIX V3 = DirectX::XMMatrixLookAtLH(pos3, target, up3);
+    XMMATRIX V4 = DirectX::XMMatrixLookAtLH(pos4, target, up4);
 
 
     // projeção perspectiva
-    XMMATRIX P = XMMatrixPerspectiveFovLH(
+    XMMATRIX Pp = DirectX::XMMatrixPerspectiveFovLH(
         XMConvertToRadians(fovAngle),
         window->AspectRatio(),
         1.0f, 100.0f);
+    
+    XMStoreFloat4x4(&matrixProj, Pp);
+
+
+    XMMATRIX Po = DirectX::XMMatrixOrthographicLH(5.0f, 5.0f, 1.0f, 100.0f);
 
     // projeção ortográfica
     //XMMATRIX P = XMMatrixOrthographicLH(10, 10, 1.0f, 100.0f);
 
     // matriz combinada: mundo - câmera - projeção 
-    XMMATRIX WorldViewProj1 = W * V1 * P;
-    XMMATRIX WorldViewProj2 = W * V2 * P;
-    XMMATRIX WorldViewProj3 = W * V3 * P;
-    XMMATRIX WorldViewProj4 = W * V4 * P;
+    XMMATRIX WorldViewProj1 = W * V1 * Pp;
+    XMMATRIX WorldViewProj2 = W * V2 * Po;
+    XMMATRIX WorldViewProj3 = W * V3 * Po;
+    XMMATRIX WorldViewProj4 = W * V4 * Po;
 
-    Vertex vertices2[VertexCount];
-    memcpy(vertices2, vertices, VertexCount * sizeof(Vertex));
-    Vertex vertices3[VertexCount];
-    memcpy(vertices3, vertices, VertexCount * sizeof(Vertex));
-    Vertex vertices4[VertexCount];
-    memcpy(vertices4, vertices, VertexCount * sizeof(Vertex));
+    //Vertex vertices2[VertexCount];
+    //memcpy(vertices2, vertices, VertexCount * sizeof(Vertex));
+    //Vertex vertices3[VertexCount];
+    //memcpy(vertices3, vertices, VertexCount * sizeof(Vertex));
+    //Vertex vertices4[VertexCount];
+    //memcpy(vertices4, vertices, VertexCount * sizeof(Vertex));
 
     // coloca vértices na janela de projeção
-    for (int i = 0; i < VertexCount; ++i)
-    {
-        XMVECTOR vertex = XMLoadFloat4(&vertices[i].Pos);
-        XMVECTOR proj1 = XMVector3TransformCoord(vertex, WorldViewProj1);
-        XMVECTOR proj2 = XMVector3TransformCoord(vertex, WorldViewProj2);
-        XMVECTOR proj3 = XMVector3TransformCoord(vertex, WorldViewProj3);
-        XMVECTOR proj4 = XMVector3TransformCoord(vertex, WorldViewProj4);
-        XMStoreFloat4(&vertices[i].Pos, proj1);
-        XMStoreFloat4(&vertices2[i].Pos, proj2);
-        XMStoreFloat4(&vertices3[i].Pos, proj3);
-        XMStoreFloat4(&vertices4[i].Pos, proj4);
-    }
 
     // ---------------------------------------
 
     // tamanho em bytes dos vértices
     const uint vbSize = VertexCount * sizeof(Vertex);
+    const uint ibSize = IndexCount * sizeof(Vertex);
 
     // cria malha 3D
-    geometry1 = new Mesh(vertices, vbSize, sizeof(Vertex));
-    geometry2 = new Mesh(vertices2, vbSize, sizeof(Vertex));
-    geometry3 = new Mesh(vertices3, vbSize, sizeof(Vertex));
-    geometry4 = new Mesh(vertices4, vbSize, sizeof(Vertex));
+    geometry1 = new Mesh();
+    geometry2 = new Mesh();
+    geometry3 = new Mesh();
+    geometry4 = new Mesh();
+
+    geometry1->VertexBuffer(vertices, vbSize, sizeof(Vertex));
+    geometry1->IndexBuffer(indices, ibSize, DXGI_FORMAT_R16_UINT);
+    geometry1->ConstantBuffer(sizeof(ObjConstants));
+
+    XMStoreFloat4x4(&newCbv[0].World, WorldViewProj1);
+    //XMStoreFloat4x4(&newCbv[0].World, W);
+    //XMStoreFloat4x4(&newCbv[0].View, V1);
+    //XMStoreFloat4x4(&newCbv[0].Proj, P);
+
+    
+    geometry1->CopyConstants(&newCbv[0], sizeof(ObjConstants));
+
+    // --------------------------------------------------------------
+
+    geometry2->ConstantBuffer(sizeof(ObjConstants));
+
+    XMStoreFloat4x4(&newCbv[1].World, WorldViewProj2);
+
+    geometry2->CopyConstants(&newCbv[1], sizeof(ObjConstants));
+
+    // --------------------------------------------------------------
+
+    geometry3->ConstantBuffer(sizeof(ObjConstants));
+
+    XMStoreFloat4x4(&newCbv[2].World, WorldViewProj3);
+    geometry3->CopyConstants(&newCbv[2], sizeof(ObjConstants));
+
+    // --------------------------------------------------------------
+
+    geometry4->ConstantBuffer(sizeof(ObjConstants));
+
+    XMStoreFloat4x4(&newCbv[3].World, WorldViewProj4);
+    geometry4->CopyConstants(&newCbv[3], sizeof(ObjConstants));
+
+    //geometry2 = new Mesh(vertices2, vbSize, sizeof(Vertex));
+    //geometry3 = new Mesh(vertices3, vbSize, sizeof(Vertex));
+    //geometry4 = new Mesh(vertices4, vbSize, sizeof(Vertex));
 
     // --------------------------------------
     view1.TopLeftX = 0.0f;
@@ -151,12 +168,6 @@ void Cube::Init()
     view1.Height = float(window->Height() / 2);
     view1.MinDepth = 0.0f;
     view1.MaxDepth = 1.0f;
-    //view1.TopLeftX = 0.0f;
-    //view1.TopLeftY = 0.0f;
-    //view1.Width = window->Width();
-    //view1.Height = window->Height();
-    //view1.MinDepth = 0.0f;
-    //view1.MaxDepth = 1.0f;
     // --------------------------------------
     view2.TopLeftX = float(window->CenterX());
     view2.TopLeftY = 0.0f;
@@ -195,11 +206,64 @@ void Cube::Update()
     // sai com o pressionamento da tecla ESC
     if (input->KeyPress(VK_ESCAPE))
         window->Close();
+
+    float mousePosX = (float)input->MouseX();
+    float mousePosY = (float)input->MouseY();
+
+    if (input->KeyDown(VK_LBUTTON))
+    {
+        // cada pixel corresponde a 1/4 de grau
+        float dx = XMConvertToRadians(0.25f * (mousePosX - lastMousePosX));
+        float dy = XMConvertToRadians(0.25f * (mousePosY - lastMousePosY));
+
+        // atualiza ângulos com base no deslocamento do mouse 
+        // para orbitar a câmera ao redor da caixa
+        theta += dx;
+        phi += dy;
+
+
+        // restringe o ângulo de phi ]0-180[ graus
+        phi = phi < 0.1f ? 0.1f : (phi > (XM_PI - 0.1f) ? XM_PI - 0.1f : phi);
+    }
+
+    float newRadius = XMConvertToRadians(input->MouseWheel() * 0.25f);
+
+    radius += newRadius;
+    radius = (radius < 3.0f ? 3.0f : (radius > 25.0f ? 25.0f : radius));
+
+    lastMousePosX = mousePosX;
+    lastMousePosY = mousePosY;
+
+    // converte coordenadas esféricas para cartesianas
+    float x = radius * sinf(phi) * cosf(theta);
+    float z = radius * sinf(phi) * sinf(theta);
+    float y = radius * cosf(phi);
+
+    // constrói a matriz da câmera (view matrix)
+    XMVECTOR pos = XMVectorSet(x, y, z, 1);
+
+    XMVECTOR target = XMVectorZero();
+    XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+    XMStoreFloat4x4(&matrixView, view);
+
+    //// constrói matriz combinada (world x view x proj)
+    //XMMATRIX world = XMLoadFloat4x4(&matrixWorld);
+    //XMMATRIX proj = XMLoadFloat4x4(&matrixProj);
+    //XMMATRIX WorldViewProj = world * view * proj;
+
+    // atualiza o buffer com a matriz combinada
+    XMMATRIX WorldViewProj = XMLoadFloat4x4(&matrixWorld) * view * XMLoadFloat4x4(&matrixProj);
+
+    XMStoreFloat4x4(&newCbv[0].World, WorldViewProj);
+    geometry1->CopyConstants(&newCbv[0], sizeof(ObjConstants));
+
+
 }
 
 // ------------------------------------------------------------------------------
 
-void Cube::Display()
+void Cube::Draw()
 {
     // limpa backbuffer
     graphics->Clear(pipelineState);
@@ -209,26 +273,38 @@ void Cube::Display()
     // submete comandos de configuração do pipeline
     graphics->CommandList()->SetGraphicsRootSignature(rootSignature);
     graphics->CommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    
 
 
+    ID3D12DescriptorHeap * descriptorHeap = geometry1->ConstantBufferHeap();
+    graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
+    graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
     graphics->CommandList()->RSSetViewports(1, &view1);
     graphics->CommandList()->IASetVertexBuffers(0, 1, geometry1->VertexBufferView());
-    graphics->CommandList()->DrawInstanced(VertexCount, 1, 0, 0);
+    graphics->CommandList()->IASetIndexBuffer(geometry1->IndexBufferView());
+    graphics->CommandList()->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
 
 
+    descriptorHeap = geometry2->ConstantBufferHeap();
+    graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
+    graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
     graphics->CommandList()->RSSetViewports(1, &view2);
-    graphics->CommandList()->IASetVertexBuffers(0, 1, geometry2->VertexBufferView());
-    graphics->CommandList()->DrawInstanced(VertexCount, 1, 0, 0);
+    graphics->CommandList()->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
 
 
+    descriptorHeap = geometry3->ConstantBufferHeap();
+    graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
+    graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
     graphics->CommandList()->RSSetViewports(1, &view3);
-    graphics->CommandList()->IASetVertexBuffers(0, 1, geometry3->VertexBufferView());
-    graphics->CommandList()->DrawInstanced(VertexCount, 1, 0, 0);
+    graphics->CommandList()->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
 
 
+    descriptorHeap = geometry4->ConstantBufferHeap();
+    graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
+    graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
     graphics->CommandList()->RSSetViewports(1, &view4);
-    graphics->CommandList()->IASetVertexBuffers(0, 1, geometry4->VertexBufferView());
-    graphics->CommandList()->DrawInstanced(VertexCount, 1, 0, 0);
+    graphics->CommandList()->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
+
 
     // ---------------------------------------------------
 
@@ -248,9 +324,9 @@ void Cube::Finalize()
     rootSignature->Release();
     pipelineState->Release();
     delete geometry1;
-    delete geometry2;
-    delete geometry3;
-    delete geometry4;
+    //delete geometry2;
+    //delete geometry3;
+    //delete geometry4;
 }
 
 
@@ -260,10 +336,22 @@ void Cube::Finalize()
 
 void Cube::BuildRootSignature()
 {
+    D3D12_DESCRIPTOR_RANGE cbvTable;
+    cbvTable.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+    cbvTable.NumDescriptors = 1;
+    cbvTable.BaseShaderRegister = 0;
+    cbvTable.RegisterSpace = 0;
+    cbvTable.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+    D3D12_ROOT_PARAMETER rp;
+    rp.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+    rp.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+    rp.DescriptorTable = {1, &cbvTable};
+
     // descrição para uma assinatura vazia
     D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {};
-    rootSigDesc.NumParameters = 0;
-    rootSigDesc.pParameters = nullptr;
+    rootSigDesc.NumParameters = 1;
+    rootSigDesc.pParameters = &rp;
     rootSigDesc.NumStaticSamplers = 0;
     rootSigDesc.pStaticSamplers = nullptr;
     rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
