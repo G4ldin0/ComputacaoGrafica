@@ -98,11 +98,14 @@ void BezierCurves::Init()
 
 	bufferLinhasApoio = std::vector<Vertex>(curveType);
 
-	curvasBezier = new Mesh(vertexPerCurve * 20.0f * sizeof(Vertex), sizeof(Vertex));
+	curvasBezier = new Mesh();
+	curvasBezier->VertexBuffer(vetorCurvas.data(), vertexPerCurve * 20.0f * sizeof(Vertex), sizeof(Vertex));
 
-	displayApoio = new Mesh(bufferApoio.size() * 3.0f * sizeof(Vertex), sizeof(Vertex));
+	displayApoio = new Mesh();
+	displayApoio->VertexBuffer(bufferApoio.data(), bufferApoio.size() * 3.0f * sizeof(Vertex), sizeof(Vertex));
 
-	displayLinhas = new Mesh(bufferLinhasApoio.size() * sizeof(Vertex), sizeof(Vertex));
+	displayLinhas = new Mesh();
+	displayLinhas->VertexBuffer(bufferLinhasApoio.data(), bufferLinhasApoio.size() * sizeof(Vertex), sizeof(Vertex));
 
 	graphics->SubmitCommands();
 
