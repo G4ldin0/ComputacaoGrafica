@@ -4,20 +4,29 @@ using namespace DirectX;
 
 void DXApp::Init()
 {
+
+	
+	viewports[0] = 	{0.0f					, 0.0f						, window->Width() / 2.0f, window->Height() / 2.0f};
+	viewports[1] = 	{window->Width() / 2.0f , 0.0f						, window->Width() / 2.0f, window->Height() / 2.0f};
+	viewports[2] = 	{0.0f					, window->Height() / 2.0f	, window->Width() / 2.0f, window->Height() / 2.0f};
+	viewports[3] = 	{window->Width() / 2.0f	, window->Height() / 2.0f	, window->Width() / 2.0f, window->Height() / 2.0f};
+
+
 	const uint vbSize = sizeof(Vertex);
 
 
 	XMMATRIX world = XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMMatrixRotationY(XMConvertToRadians(-30.0f)) * XMMatrixTranslation(0.0f, 0.0f, 5.0f);
+	XMStoreFloat4x4(&cb.w, XMMatrixTranspose(world));
 
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	XMVECTOR pos = XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f);
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
+	//view *= XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), window->AspectRatio(), 1.0f, 100.0f);
+	XMStoreFloat4x4(& cb.p, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), window->AspectRatio(), 1.0f, 100.0f)));
 
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), window->AspectRatio(), 1.0f, 100.0f);
 
-	XMMATRIX wvp = world * view * proj;
-
+	XMStoreFloat4x4(& cb.v,XMMatrixTranspose(view));
 
 
 	graphics->ResetCommands();
@@ -58,9 +67,9 @@ void DXApp::Init()
 	
 	geometry->mesh->VertexBuffer(caixa.VertexData(), caixa.VertexCount() * sizeof(Vertex), sizeof(Vertex));
 	geometry->mesh->IndexBuffer(caixa.IndexData(), caixa.IndexCount() * sizeof(uint), DXGI_FORMAT_R32_UINT);
-	geometry->mesh->ConstantBuffer(sizeof(ObjConstanst), 1);
-	XMStoreFloat4x4(&geometry->world, XMMatrixTranspose(wvp));
-	geometry->mesh->CopyConstants(&geometry->world, 0);
+	geometry->mesh->ConstantBuffer(sizeof(ObjConstants), 1);
+	XMStoreFloat4x4(&geometry->world, XMMatrixTranspose(world));
+	geometry->mesh->CopyConstants(&cb, 0);
 
 	BuildRootSignature();
 	BuildPipelineState();
@@ -75,7 +84,19 @@ void DXApp::Update()
 	if(input->KeyDown(VK_ESCAPE))
 		window->Close();
 
+	delta += frameTime;
 
+	XMMATRIX W = XMLoadFloat4x4(&geometry->world);
+	W *= XMMatrixRotationY(frameTime * 0.5f * (1 + sin(delta) * cos(delta * 1.5f)));
+	XMStoreFloat4x4(&geometry->world, W);
+	XMStoreFloat4x4(&cb.w, W);
+	
+
+	graphics->ResetCommands();
+
+	geometry->mesh->CopyConstants(&cb, 0);
+
+	graphics->SubmitCommands();
 
 }
 
@@ -99,20 +120,28 @@ void DXApp::Draw()
 
 
 	// Desenhando a geometria
-	graphics->CommandList()->SetPipelineState(pipelineStateSceneWireframe);
-	graphics->CommandList()->IASetVertexBuffers(0, 1, geometry->mesh->VertexBufferView());
-	graphics->CommandList()->IASetIndexBuffer(geometry->mesh->IndexBufferView());
-	ID3D12DescriptorHeap* heaps[] = { geometry->mesh->ConstantBufferHeap() };
-	graphics->CommandList()->SetDescriptorHeaps(1, heaps);
-	graphics->CommandList()->SetGraphicsRootDescriptorTable(0, geometry->mesh->ConstantBufferHandle(0));
-	graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	graphics->CommandList()->DrawIndexedInstanced(
-		geometry->submesh.indexCount, 
-		1, 
-		geometry->submesh.startIndex, 
-		geometry->submesh.baseVertex, 
-		0);
+	for(uint i = 0; i < 4; i++)
+	{
+		graphics->CommandList()->RSSetViewports(1, &viewports[i]);
+
+		graphics->CommandList()->SetPipelineState(pipelineStateSceneWireframe);
+		graphics->CommandList()->IASetVertexBuffers(0, 1, geometry->mesh->VertexBufferView());
+		graphics->CommandList()->IASetIndexBuffer(geometry->mesh->IndexBufferView());
+		ID3D12DescriptorHeap* heaps[] = { geometry->mesh->ConstantBufferHeap() };
+		graphics->CommandList()->SetDescriptorHeaps(1, heaps);
+		graphics->CommandList()->SetGraphicsRootDescriptorTable(0, geometry->mesh->ConstantBufferHandle(0));
+		graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		graphics->CommandList()->DrawIndexedInstanced(
+			geometry->submesh.indexCount,
+			1,
+			geometry->submesh.startIndex,
+			geometry->submesh.baseVertex,
+			0);
+	}
+
+
 
 	graphics->Present();
 
