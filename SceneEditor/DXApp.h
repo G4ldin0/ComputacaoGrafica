@@ -26,9 +26,15 @@ struct ObjConstants {
 	  0.0f, 1.0f, 0.0f, 0.0f,
 	  0.0f, 0.0f, 1.0f, 0.0f,
 	  0.0f, 0.0f, 0.0f, 1.0f };
+	int selected = false;
+};
 
-	bool selected = false;
-
+struct Teste {
+	XMFLOAT4X4 p =
+	{ 1.0f, 0.0f, 0.0f, 0.0f,
+	  0.0f, 1.0f, 0.0f, 0.0f,
+	  0.0f, 0.0f, 1.0f, 0.0f,
+	  0.0f, 0.0f, 0.0f, 1.0f };
 };
 
 class DXApp : public App
@@ -39,20 +45,45 @@ class DXApp : public App
 	ID3D12PipelineState* pipelineStateSceneWireframe = nullptr;
 	ID3D12PipelineState* pipelineStateSceneSolid = nullptr;
 
-	D3D12_VIEWPORT viewports[4];
+	Mesh * testeViewBuffer = nullptr;
+	Mesh * testeProjBuffer = nullptr;
 
-	Object * geometry = nullptr;
+	Mesh * testeArquivo = nullptr;
+
 	Mesh * ui = nullptr;
 
+	D3D12_VIEWPORT viewports[4];
 
-	ObjConstants cb;
+	Mesh * buffer = nullptr;
+	vector<Object> scene;
+	vector<Vertex> vertices;
+	vector<uint> indices;
+	//vector<vector<ObjConstants>> constantes;
+	vector<vector<ObjConstants>> constantes = vector<vector<ObjConstants>>(4, vector<ObjConstants>());
+
+	XMMATRIX viewMatrix[4];
+	XMMATRIX projP;
+	XMMATRIX projO;
+
+	ObjConstants cb[4];
 
 	float delta;
+
+	uint select = 0;
+	bool visualizacao = false;
+
+	float theta = 0;
+	float phi = 0;
+	float radius = 0;
+	float lastMousePosX = 0;
+	float lastMousePosY = 0;
+
 
 	// Herdado por meio de App
 	void Init() override;
 	void Update() override;
-	void Draw();
+	void DisplayPadrao();
+	void DisplayViews();
 	void Finalize() override;
 	void OnPause() override;
 
@@ -61,5 +92,13 @@ class DXApp : public App
 
 	// Configura estados de função fixa e indexa Shaders do Pipeline
 	void BuildPipelineState();
+
+	void createObject(Geometry*);
+
+	void LoadFile(string);
+
+	void updateBuffer();
+
+	void updateSelected(uint);
 };
 

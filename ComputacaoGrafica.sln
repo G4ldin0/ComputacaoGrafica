@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CurvasBezier", "CurvasBezie
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ViewPorts", "ViewPorts\ViewPorts.vcxproj", "{1284548A-F7B9-4AC1-8C2E-55800F0C9C15}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SceneEditor", "SceneEditor\SceneEditor.vcxproj", "{0D839889-5D16-4253-A365-C80AE58BD754}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -91,6 +93,14 @@ Global
 		{1284548A-F7B9-4AC1-8C2E-55800F0C9C15}.Release|x64.Build.0 = Release|x64
 		{1284548A-F7B9-4AC1-8C2E-55800F0C9C15}.Release|x86.ActiveCfg = Release|Win32
 		{1284548A-F7B9-4AC1-8C2E-55800F0C9C15}.Release|x86.Build.0 = Release|Win32
+		{0D839889-5D16-4253-A365-C80AE58BD754}.Debug|x64.ActiveCfg = Debug|x64
+		{0D839889-5D16-4253-A365-C80AE58BD754}.Debug|x64.Build.0 = Debug|x64
+		{0D839889-5D16-4253-A365-C80AE58BD754}.Debug|x86.ActiveCfg = Debug|Win32
+		{0D839889-5D16-4253-A365-C80AE58BD754}.Debug|x86.Build.0 = Debug|Win32
+		{0D839889-5D16-4253-A365-C80AE58BD754}.Release|x64.ActiveCfg = Release|x64
+		{0D839889-5D16-4253-A365-C80AE58BD754}.Release|x64.Build.0 = Release|x64
+		{0D839889-5D16-4253-A365-C80AE58BD754}.Release|x86.ActiveCfg = Release|Win32
+		{0D839889-5D16-4253-A365-C80AE58BD754}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

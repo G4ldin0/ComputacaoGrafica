@@ -25,12 +25,13 @@ vertexOut main( vertexIn pIn )
     //float4 u = crossProduct / length(crossProduct);
     //float4 v = float4(cross(w.xyz, u.xyz), 0.0f);
     //float4x4 V = float4x4(u, v, w, Pos);
-    
-    float4x4 w = World * View * Proj;
     //float4x4 w = World * View * Proj;
     
     vertexOut vout;
     vout.posH = mul(float4(pIn.pos, 1.0f), transpose(World));
+    //vout.posH = mul(vout.posH, transpose(View));
+    //vout.posH = mul(vout.posH, transpose(Proj));
+    
     vout.color = pIn.color;
     return vout;
 }

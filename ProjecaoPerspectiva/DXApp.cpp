@@ -105,7 +105,7 @@ void DXApp::Update()
 	XMStoreFloat4x4(&View, view);
 
 	XMMATRIX world  = XMLoadFloat4x4(&World);
-	//world *= XMMatrixTranslation(1.0f, 1.0f, 10.0f);
+	world *= XMMatrixTranslation(1.0f, 1.0f, 10.0f);
 	XMMATRIX proj = XMLoadFloat4x4(&Proj);
 	XMMATRIX WorldViewProj = world * view * proj;
 
@@ -259,8 +259,8 @@ void DXApp::BuildGeometry()
 		3, 4, 2,
 		0, 4, 3,
 
-		0, 2, 1,
-		2, 0, 3
+		1, 2, 0,
+		3, 0, 2
 
 	};
 
@@ -281,20 +281,8 @@ void DXApp::BuildGeometry()
 	geometry->subMesh["geo"] = geomSubMesh;
 
 
-	graphics->Allocate(vbSize, &geometry->vertexBufferCPU);
-	graphics->Allocate(UPLOAD, vbSize, &geometry->vertexBufferUpload);
-	graphics->Allocate(GPU, vbSize, &geometry->vertexBufferGPU);
-
-	graphics->Allocate(ibSize, &geometry->indexBufferCPU);
-	graphics->Allocate(UPLOAD, ibSize, &geometry->indexBufferUpload);
-	graphics->Allocate(GPU, ibSize, &geometry->indexBufferGPU);
-
-	graphics->Copy(vertices, vbSize, geometry->vertexBufferCPU);
-	graphics->Copy(indices, ibSize, geometry->indexBufferCPU);
-
-
-	graphics->Copy(vertices, vbSize, geometry->vertexBufferUpload, geometry->vertexBufferGPU);
-	graphics->Copy(indices, ibSize, geometry->indexBufferUpload, geometry->indexBufferGPU);
+	geometry->VertexBuffer(vertices, 5 * sizeof(Vertex), sizeof(Vertex));
+	geometry->IndexBuffer(indices, 18 * sizeof(ushort), DXGI_FORMAT_R16_SINT);
 
 }
 
@@ -379,7 +367,7 @@ void DXApp::BuildPipelineState()
 	D3D12_RASTERIZER_DESC rasterizerDesc = {};
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 	//rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
-	rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+	rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
 	rasterizerDesc.FrontCounterClockwise = FALSE;
 	rasterizerDesc.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 	rasterizerDesc.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;

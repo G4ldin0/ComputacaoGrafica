@@ -133,7 +133,7 @@ void Cube::Init()
     //XMStoreFloat4x4(&newCbv[0].Proj, P);
 
     
-    geometry1->CopyConstants(&newCbv[0], sizeof(ObjConstants));
+    geometry1->CopyConstants(&newCbv[0], 0);
 
     // --------------------------------------------------------------
 
@@ -141,21 +141,21 @@ void Cube::Init()
 
     XMStoreFloat4x4(&newCbv[1].World, WorldViewProj2);
 
-    geometry2->CopyConstants(&newCbv[1], sizeof(ObjConstants));
+    geometry2->CopyConstants(&newCbv[1], 1);
 
     // --------------------------------------------------------------
 
     geometry3->ConstantBuffer(sizeof(ObjConstants));
 
     XMStoreFloat4x4(&newCbv[2].World, WorldViewProj3);
-    geometry3->CopyConstants(&newCbv[2], sizeof(ObjConstants));
+    geometry3->CopyConstants(&newCbv[2], 2);
 
     // --------------------------------------------------------------
 
     geometry4->ConstantBuffer(sizeof(ObjConstants));
 
     XMStoreFloat4x4(&newCbv[3].World, WorldViewProj4);
-    geometry4->CopyConstants(&newCbv[3], sizeof(ObjConstants));
+    geometry4->CopyConstants(&newCbv[3], 3);
 
     //geometry2 = new Mesh(vertices2, vbSize, sizeof(Vertex));
     //geometry3 = new Mesh(vertices3, vbSize, sizeof(Vertex));
@@ -256,7 +256,7 @@ void Cube::Update()
     XMMATRIX WorldViewProj = XMLoadFloat4x4(&matrixWorld) * view * XMLoadFloat4x4(&matrixProj);
 
     XMStoreFloat4x4(&newCbv[0].World, WorldViewProj);
-    geometry1->CopyConstants(&newCbv[0], sizeof(ObjConstants));
+    geometry1->CopyConstants(&newCbv[0], 0);
 
 
 }
@@ -275,33 +275,34 @@ void Cube::Draw()
     graphics->CommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     
 
+    graphics->CommandList()->IASetVertexBuffers(0, 1, geometry1->VertexBufferView());
+    graphics->CommandList()->IASetIndexBuffer(geometry1->IndexBufferView());
 
     ID3D12DescriptorHeap * descriptorHeap = geometry1->ConstantBufferHeap();
     graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
     graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
     graphics->CommandList()->RSSetViewports(1, &view1);
-    graphics->CommandList()->IASetVertexBuffers(0, 1, geometry1->VertexBufferView());
-    graphics->CommandList()->IASetIndexBuffer(geometry1->IndexBufferView());
     graphics->CommandList()->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
 
 
-    descriptorHeap = geometry2->ConstantBufferHeap();
-    graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
-    graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+    //descriptorHeap = geometry2->ConstantBufferHeap();
+    //graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
+    //graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
     graphics->CommandList()->RSSetViewports(1, &view2);
     graphics->CommandList()->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
 
 
-    descriptorHeap = geometry3->ConstantBufferHeap();
-    graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
-    graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+    //descriptorHeap = geometry3->ConstantBufferHeap();
+    //graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
+    //graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
     graphics->CommandList()->RSSetViewports(1, &view3);
     graphics->CommandList()->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
 
 
-    descriptorHeap = geometry4->ConstantBufferHeap();
-    graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
-    graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+    //descriptorHeap = geometry4->ConstantBufferHeap();
+    //graphics->CommandList()->SetDescriptorHeaps(1, &descriptorHeap);
+    //graphics->CommandList()->SetGraphicsRootDescriptorTable(0, descriptorHeap->GetGPUDescriptorHandleForHeapStart());
     graphics->CommandList()->RSSetViewports(1, &view4);
     graphics->CommandList()->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
 
