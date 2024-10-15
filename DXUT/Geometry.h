@@ -1,108 +1,126 @@
+/**********************************************************************************
+// Geometry (Arquivo de Cabeçalho)
+//
+// Criação:     03 Fev 2013
+// Atualização: 18 Set 2023
+// Compilador:  Visual C++ 2022
+//
+// Descrição:   Define vértices e índices para várias geometrias
+//
+**********************************************************************************/
 
-#ifndef DXUT_GEOMETRY_H
-#define DXUT_GEOMETRY_H
+#ifndef DXUT_GEOMETRY_H_
+#define DXUT_GEOMETRY_H_
 
-#include "types.h"
+// -------------------------------------------------------------------------------
+
+#include "Types.h"
 #include <vector>
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 using namespace DirectX;
 using std::vector;
 
+// -------------------------------------------------------------------------------
+
 struct Vertex
 {
-	XMFLOAT3 Position;
-	XMFLOAT4 Color;
+    XMFLOAT3 pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+    XMFLOAT4 color = XMFLOAT4(Colors::White);
+    XMFLOAT3 normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
 };
+
+// -------------------------------------------------------------------------------
+// Geometry
+// -------------------------------------------------------------------------------
 
 class Geometry
 {
 protected:
-	XMFLOAT3 position;								// posição da geometria
-	uint type;										// tipo da geometria
-	
-	void Subdivide();								// subdivide os triângulos
-	
+    void Subdivide();                       // subdivide triângulos
+    void Normals();                         // ajusta normais
+
 public:
-	vector<Vertex> vertices;						// vértice de geometria
-	vector<uint> indices;							// índice de geometria
-	
-	Geometry();										// construtor
-	~Geometry();									// destrutor
+    vector<Vertex> vertices;                // vértices da geometria
+    vector<uint>   indices;                 // índices da geometria
 
-	virtual float X() const { return position.x; }	// retorna x da geometria
-	virtual float Y() const { return position.y; }	// retorna y da geometria
-	virtual float Z() const { return position.z; }	// retorna z da geometria
+    // métodos inline
+    const Vertex* VertexData() const        // retorna vértices da geometria
+    {
+        return vertices.data();
+    }
 
-	// retorna o tipo da geometria
-	virtual uint Type() const 
-	{ return type; }
+    const uint* IndexData() const           // retorna índices da geometria
+    {
+        return indices.data();
+    }
 
-	// retorna posição da geometria
-	virtual XMFLOAT3 Position() const 
-	{ return position; }
-	
-	// move a geometria pelo delta (dx, dy, dz)
-	virtual void Translate(float dx, float dy, float dz)
-	{ position.x += dx; position.y += dy; position.z += dz; } 
+    uint VertexCount() const                // retorna número de vértices
+    {
+        return uint(vertices.size());
+    }
 
-
-	// move a geometria pelo delta (dx, dy, dz)
-	virtual void MoveTo(float px, float py, float pz)
-	{ position.x = px; position.y = py; position.z = pz; }
-
-	// retorna vértices da geometria
-	const Vertex* VertexData() const
-	{ return vertices.data(); }
-
-	const uint* IndexData() const
-	{ return indices.data(); }
-	
-	// retorna o número de vértices
-	uint VertexCount() const
-	{ return uint(vertices.size()); }
-
-
-	// retorna o número de índices
-	uint IndexCount() const
-	{ return uint(indices.size()); }
+    uint IndexCount() const                 // retorna número de índices
+    {
+        return uint(indices.size());
+    }
 };
 
-class Box : public Geometry {
-public:
-	Box();
-	Box(float width, float height, float depth);
+// -------------------------------------------------------------------------------
+// Box
+// -------------------------------------------------------------------------------
+
+struct Box : public Geometry
+{
+    Box(float width, float height, float depth);
 };
 
-class Cylinder : public Geometry {
-public:
-	Cylinder();
-	Cylinder(float bottom, float top, float height, uint sliceCount, uint stackCount);
+// -------------------------------------------------------------------------------
+// Cylinder
+// -------------------------------------------------------------------------------
+
+struct Cylinder : public Geometry
+{
+    Cylinder(float bottom, float top, float height, uint sliceCount, uint stackCount);
 };
 
-class Sphere : public Geometry {
-public:
-	Sphere();
-	Sphere(float radius, uint sliceCount, uint stackCount);
+// -------------------------------------------------------------------------------
+// Sphere
+// -------------------------------------------------------------------------------
+
+struct Sphere : public Geometry
+{
+    Sphere(float radius, uint sliceCount, uint stackCount);
 };
 
-class GeoSphere : public Geometry {
-public:
-	GeoSphere();
-	GeoSphere(float radius, uint subdivisions);
+// -------------------------------------------------------------------------------
+// GeoSphere
+// -------------------------------------------------------------------------------
+
+struct GeoSphere : public Geometry
+{
+    GeoSphere(float radius, uint subdivisions);
 };
 
-class Grid : public Geometry {
-public:
-	Grid();
-	Grid(float width, float depth, uint m, uint n);
+
+// -------------------------------------------------------------------------------
+// Grid
+// -------------------------------------------------------------------------------
+
+struct Grid : public Geometry
+{
+    Grid(float width, float depth, uint m, uint n);
 };
 
-class Quad: public Geometry {
-public:
-	Quad();
-	Quad(float width, float height);
+// -------------------------------------------------------------------------------
+// Quad
+// -------------------------------------------------------------------------------
+
+struct Quad : public Geometry
+{
+    Quad(float width, float height);
 };
 
+// -------------------------------------------------------------------------------
 
 #endif

@@ -9,6 +9,7 @@ void DXApp::Init()
 
 	theta = XM_PIDIV2;
 	phi = XM_PIDIV4;
+	lightPhi = XM_PIDIV2;
 	radius = 10.0f;
 
 	mouseX = (float)input->MouseX();
@@ -25,7 +26,6 @@ void DXApp::Init()
 	0.0f, 0.0f, 0.0f, 1.0f
 	};
 
-	lightDirection = { 1.0f, 0.0f, 0.0f};
 
 	XMStoreFloat4x4(&Proj, XMMatrixPerspectiveFovLH(
 		XMConvertToRadians(45.0f),
@@ -79,17 +79,20 @@ void DXApp::Update()
 	radius = radius < 3.0f ? 3.0f : (radius > 97.5f ? 97.5f : radius);
 
 	lightTheta += frameTime;
-	lightPhi += 1.25f * frameTime;
+	//lightPhi += 0.25f * frameTime;
 
-	float lightX = lightDirection.x + 1.0f * sinf(lightPhi) * cosf(lightTheta);
-	float lightY = lightDirection.y + sinf(lightPhi);
-	float lightZ = lightDirection.z + 1.0f * sinf(lightPhi) * sinf(lightTheta);
-	XMVECTOR light = XMVectorSet(lightX, lightY, lightZ, .5f);
+	float lightX = sinf(lightPhi) * cosf(lightTheta);
+	float lightY = sinf(lightPhi);
+	float lightZ = sinf(lightPhi) * sinf(lightTheta);
+	XMVECTOR light = XMVector4Normalize(XMVectorSet(lightX, lightY, lightZ, 0.0f));
 
-	//std::stringstream ss;
-	//ss << lightX << ' ' << lightY << ' ' << lightZ << '\n';
 
-	//OutputDebugString(ss.str().c_str());
+	if (input->KeyDown(VK_UP))
+		lightStrenght += 0.5f * frameTime;
+
+	if (input->KeyDown(VK_DOWN))
+		lightStrenght -= 0.5f * frameTime;
+
 
 	mouseX = newmouseX;
 	mouseY = newmouseY;
@@ -107,14 +110,17 @@ void DXApp::Update()
 
 	XMMATRIX world = XMLoadFloat4x4(&World);
 	XMMATRIX proj = XMLoadFloat4x4(&Proj);
-	XMMATRIX WorldViewProj = world * view * proj;
+	XMMATRIX ViewProj = view * proj;
 
 
 	ObjectConstants objConstant;
-	XMStoreFloat4x4(&objConstant.worldViewProj, XMMatrixTranspose(WorldViewProj));
-	XMStoreFloat3(&objConstant.cameraPos, pos);
-	XMStoreFloat3(&objConstant.ambientLight, light);
-	memcpy(constantBufferData, &objConstant.worldViewProj, sizeof(ObjectConstants));
+	XMStoreFloat4x4(&objConstant.world, XMMatrixTranspose(world));
+	XMStoreFloat4x4(&objConstant.ViewProj, XMMatrixTranspose(ViewProj));
+	//XMStoreFloat3(&objConstant.cameraPos, pos);
+	XMStoreFloat4(&objConstant.lightDirection, light);
+	objConstant.strenght = lightStrenght;
+	XMStoreFloat4(&objConstant.cameraPos, pos);
+	memcpy(constantBufferData, &objConstant, sizeof(ObjectConstants));
 
 
 }
@@ -184,30 +190,32 @@ void DXApp::BuildConstantBuffers()
 void DXApp::BuildGeometry()
 {
 	
-	Sphere geom(5.0f, 10, 5);
+	//GeoSphere geom(3.0f, 2);
+	//Box geom(5.0f, 10.0f, 5.0f);
+	Cylinder geom(2.0f, 1.75f, 3.0f, 8, 5);
 
-	// Encontrando o vetor normal dos pixels
-	for (uint i = 0; i < geom.IndexCount() / 3.0f; i++)
-	{
-		uint i0 = geom.indices[i * 3 + 0];
-		uint i1 = geom.indices[i * 3 + 1];
-		uint i2 = geom.indices[i * 3 + 2];
+	//// Encontrando o vetor normal dos pixels
+	//for (uint i = 0; i < geom.IndexCount() / 3.0f; i++)
+	//{
+	//	uint i0 = geom.indices[i * 3 + 0];
+	//	uint i1 = geom.indices[i * 3 + 1];
+	//	uint i2 = geom.indices[i * 3 + 2];
 
-		XMVECTOR e0 = XMLoadFloat3(&geom.vertices[i1].Position) - XMLoadFloat3(&geom.vertices[i0].Position);
-		XMVECTOR e1 = XMLoadFloat3(&geom.vertices[i2].Position) - XMLoadFloat3(&geom.vertices[i0].Position);
-		XMVECTOR normal = XMVector3Cross(e0, e1);
-		
-		 XMStoreFloat3(&geom.vertices[i0].Normal, XMLoadFloat3(&geom.vertices[i0].Normal) + normal);
-		 XMStoreFloat3(&geom.vertices[i1].Normal, XMLoadFloat3(&geom.vertices[i1].Normal) + normal);
-		 XMStoreFloat3(&geom.vertices[i2].Normal, XMLoadFloat3(&geom.vertices[i2].Normal) + normal);
+	//	XMVECTOR e0 = XMLoadFloat3(&geom.vertices[i1].Position) - XMLoadFloat3(&geom.vertices[i0].Position);
+	//	XMVECTOR e1 = XMLoadFloat3(&geom.vertices[i2].Position) - XMLoadFloat3(&geom.vertices[i0].Position);
+	//	XMVECTOR normal = XMVector3Cross(e0, e1);
+	//	
+	//	 XMStoreFloat3(&geom.vertices[i0].Normal, XMLoadFloat3(&geom.vertices[i0].Normal) + normal);
+	//	 XMStoreFloat3(&geom.vertices[i1].Normal, XMLoadFloat3(&geom.vertices[i1].Normal) + normal);
+	//	 XMStoreFloat3(&geom.vertices[i2].Normal, XMLoadFloat3(&geom.vertices[i2].Normal) + normal);
 
-	}
+	//}
 
-	
+	//
 
-	for(uint i = 0; i < geom.VertexCount(); i++)
-		XMStoreFloat3(&geom.vertices[i].Normal, XMVector3Normalize(XMLoadFloat3(&geom.vertices[i].Normal)));
-		
+	//for(uint i = 0; i < geom.VertexCount(); i++)
+	//	XMStoreFloat3(&geom.vertices[i].Normal, XMVector3Normalize(XMLoadFloat3(&geom.vertices[i].Normal)));
+	//	
 
 
 	uint vbSize = geom.VertexCount() * sizeof(Vertex);

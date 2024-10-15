@@ -6,16 +6,28 @@
 using namespace DirectX;
 
 struct ObjectConstants {
-	XMFLOAT4X4 worldViewProj =
+	XMFLOAT4X4 world =
 	{
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
+	XMFLOAT4X4 ViewProj =
+	{
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+	//XMFLOAT3 cameraPos = {0.0f, 0.0f, -10.0f};
+	XMFLOAT4 lightDirection = { 0.0f, 0.0f, 1.0f, 0.0f};
 
-	XMFLOAT3 cameraPos = {0.0f, 0.0f, -10.0f};
-	XMFLOAT3 ambientLight = { 0.0f, 10.0f, 0.0f};
+	XMFLOAT4 lightAmbient = {0.5f, 0.0f, 0.0f, 1.0f};
+
+	float strenght = 1.0f;
+	XMFLOAT3 offset;
+	XMFLOAT4 cameraPos;
 };
 
 class DXApp : public App
@@ -43,9 +55,9 @@ class DXApp : public App
 	float phi = 0;
 	float radius = 0;
 
-	XMFLOAT3 lightDirection = {};
 	float lightTheta = 0;
 	float lightPhi = 0;
+	float lightStrenght = 0.5f;
 
 	// Herdado por meio de App
 	void Init() override;

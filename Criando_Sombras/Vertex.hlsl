@@ -1,8 +1,10 @@
 cbuffer cbPerObject : register(b0)
 {
-    float4x4 worldViewProj;
+    float4x4 world;
+    float4x4 ViewProj;
     float3 cameraPos;
-    float3 ambientLight;
+    float _blank;
+    float3 lightDirection;
 }
 
 
@@ -16,6 +18,7 @@ struct vertexIn
 struct vertexOut
 {
     float4 posH : SV_POSITION;
+    float4 posW : POSITION;
     float4 color : COLOR;
     float3 normal : NORMAL;
 };
@@ -23,12 +26,10 @@ struct vertexOut
 vertexOut main( vertexIn pIn )
 {
     vertexOut vout;
-    vout.posH = mul(float4(pIn.pos, 1.0f), worldViewProj);
-    float lightAmount = ((dot(pIn.normal, ambientLight) + 1.0f) / 1.5f);
-    //float lightAmount = 1;
-    vout.color = pIn.color * lightAmount;
-    vout.normal = pIn.normal;
-    //vout.color = float4(ambientLight, 1.0f);
-    //vout.normal = pIn.normal;
+    vout.posH = mul(float4(pIn.pos, 1.0f), world);
+    vout.posH = mul(vout.posH, ViewProj);
+    vout.posW = mul(float4(pIn.pos, 1.0f), world);
+    vout.color = pIn.color;
+    vout.normal = mul(pIn.normal, (float3x3) world);
     return vout;
 }
