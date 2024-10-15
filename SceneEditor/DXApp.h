@@ -15,17 +15,17 @@ struct ObjConstants {
 	  0.0f, 0.0f, 1.0f, 0.0f,
 	  0.0f, 0.0f, 0.0f, 1.0f };
 
-	XMFLOAT4X4 v =
-	{ 1.0f, 0.0f, 0.0f, 0.0f,
-	  0.0f, 1.0f, 0.0f, 0.0f,
-	  0.0f, 0.0f, 1.0f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f };
+	//XMFLOAT4X4 v =
+	//{ 1.0f, 0.0f, 0.0f, 0.0f,
+	//  0.0f, 1.0f, 0.0f, 0.0f,
+	//  0.0f, 0.0f, 1.0f, 0.0f,
+	//  0.0f, 0.0f, 0.0f, 1.0f };
 
-	XMFLOAT4X4 p =
-	{ 1.0f, 0.0f, 0.0f, 0.0f,
-	  0.0f, 1.0f, 0.0f, 0.0f,
-	  0.0f, 0.0f, 1.0f, 0.0f,
-	  0.0f, 0.0f, 0.0f, 1.0f };
+	//XMFLOAT4X4 p =
+	//{ 1.0f, 0.0f, 0.0f, 0.0f,
+	//  0.0f, 1.0f, 0.0f, 0.0f,
+	//  0.0f, 0.0f, 1.0f, 0.0f,
+	//  0.0f, 0.0f, 0.0f, 1.0f };
 	int selected = false;
 };
 
@@ -53,6 +53,7 @@ class DXApp : public App
 	Mesh * ui = nullptr;
 
 	D3D12_VIEWPORT viewports[4];
+	D3D12_VIEWPORT viewportGlobal;
 
 	Mesh * buffer = nullptr;
 	vector<Object> scene;
@@ -61,22 +62,23 @@ class DXApp : public App
 	//vector<vector<ObjConstants>> constantes;
 	vector<vector<ObjConstants>> constantes = vector<vector<ObjConstants>>(4, vector<ObjConstants>());
 
-	XMMATRIX viewMatrix[4];
+	XMFLOAT4X4 viewMatrix[4];
 	XMMATRIX projP;
 	XMMATRIX projO;
-
-	ObjConstants cb[4];
 
 	float delta;
 
 	uint select = 0;
 	bool visualizacao = false;
 
+	bool wireframe = true;
+
 	float theta = 0;
 	float phi = 0;
 	float radius = 0;
 	float lastMousePosX = 0;
 	float lastMousePosY = 0;
+
 
 
 	// Herdado por meio de App

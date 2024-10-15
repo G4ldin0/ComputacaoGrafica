@@ -27,18 +27,39 @@ void DXApp::createObject(Geometry* geo)
 	ObjConstants c;
 	c.selected = true;
 	XMStoreFloat4x4(&c.w, XMMatrixTranspose(XMMatrixIdentity()));
-	XMStoreFloat4x4(&c.v, XMMatrixTranspose(viewMatrix[0]));
-	XMStoreFloat4x4(&c.p, XMMatrixTranspose(projP));
+	//XMStoreFloat4x4(&c.v, XMMatrixTranspose(viewMatrix[0]));
+	//c.v = viewMatrix[0];
+	//XMStoreFloat4x4(&c.p, XMMatrixTranspose(projP));
 	constantes[0].push_back(c);
 
-	XMStoreFloat4x4(&c.p, XMMatrixTranspose(projO));
+	//XMStoreFloat4x4(&c.p, XMMatrixTranspose(projO));
 
 	for (uint i = 1; i < 4; i++)
 	{
-		XMStoreFloat4x4(&c.v, XMMatrixTranspose(viewMatrix[i]));
+		//XMStoreFloat4x4(&c.v, XMMatrixTranspose(viewMatrix[i]));
+		//c.v = viewMatrix[i];
 		constantes[i].push_back(c);
 	}
 	updateBuffer();
+
+}
+
+void DXApp::updateBuffer()
+{
+	graphics->ResetCommands();
+
+	buffer[0].VertexBuffer(vertices.data(), (vertices.size() > 0 ? vertices.size() : 1) * sizeof(Vertex), sizeof(Vertex));
+	buffer[0].IndexBuffer(indices.data(), (indices.size() > 0 ? indices.size() : 1) * sizeof(uint), DXGI_FORMAT_R32_UINT);
+
+	for (uint i = 0; i < 4; i++) {
+		buffer[i].ConstantBuffer(sizeof(ObjConstants), scene.size());
+
+		for (uint j = 0; j < scene.size(); j++)
+			buffer[i].CopyConstants(&constantes[i][j], j);
+
+	}
+
+	graphics->SubmitCommands();
 
 }
 
@@ -139,28 +160,10 @@ void DXApp::LoadFile(string filename)
 
 }
 
-void DXApp::updateBuffer()
-{
-	OutputDebugString("Entrei\n");
-	graphics->ResetCommands();
-
-	buffer[0].VertexBuffer(vertices.data(), (vertices.size() > 0 ? vertices.size() : 1) * sizeof(Vertex), sizeof(Vertex));
-	buffer[0].IndexBuffer(indices.data(), (indices.size() > 0 ? indices.size() : 1) * sizeof(uint), DXGI_FORMAT_R32_UINT);
-	
-	for ( uint i = 0; i < 4; i++){
-		buffer[i].ConstantBuffer(sizeof(ObjConstants), scene.size());
-
-		for(uint j = 0; j < scene.size(); j++)
-			buffer[i].CopyConstants(&constantes[i][j], j);
-		
-	}
-
-	graphics->SubmitCommands();
-
-}
-
 void DXApp::Init()
 {
+
+
 
 	// -----------------------------
 	// Parâmetros Iniciais da Câmera
@@ -215,15 +218,15 @@ void DXApp::Init()
 	projP = XMMatrixIdentity();
 	
 	projP *= XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), window->AspectRatio(), 1.0f, 100.0f);
-	projO *= XMMatrixOrthographicLH(10.0f, 10.0f, 0.0f, 100.0f);
+	projO *= XMMatrixOrthographicLH(10.0f * window->AspectRatio(), 10.0f, -100.0f, 1000.0f);
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	XMVECTOR pos = XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f);
+	XMVECTOR pos = XMVectorSet(0.0f, 0.0f, -100.0f, 1.0f);
 
-	viewMatrix[0] = XMMatrixIdentity();
-	viewMatrix[1] = XMMatrixLookAtLH(XMVectorSet(-10.0f, 0.0f, 0.0f, 1.0f), target, up);
-	viewMatrix[2] = XMMatrixLookAtLH(XMVectorSet(0.0f, 0.0f, -1.0f, 1.0f), target, up);
-	viewMatrix[3] = XMMatrixLookAtLH(XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f), target, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
+	XMStoreFloat4x4(&viewMatrix[0], XMMatrixIdentity());
+	XMStoreFloat4x4(&viewMatrix[1], XMMatrixTranspose(XMMatrixLookAtLH(XMVectorSet(-100.0f, 0.0f, 0.0f, 1.0f), target, up)));
+	XMStoreFloat4x4(&viewMatrix[2], XMMatrixTranspose(XMMatrixLookAtLH(XMVectorSet(0.0f, 0.0f, -100.0f, 1.0f), target, up)));
+	XMStoreFloat4x4(&viewMatrix[3], XMMatrixTranspose(XMMatrixLookAtLH(XMVectorSet(0.0f, 100.0f, 0.0f, 1.0f), target, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))));
 	//viewMatrix *= XMMatrixLookAtLH(pos, target, up);
 
 
@@ -343,7 +346,8 @@ void DXApp::Update()
 	}
 
 
-
+	if (input->KeyPress('W'))
+		wireframe = !wireframe;
 
 
 	if (input->KeyPress(VK_DELETE) && scene.size() > 1)
@@ -477,15 +481,14 @@ void DXApp::Update()
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-	viewMatrix[0] = view;
+	XMStoreFloat4x4(&viewMatrix[0], XMMatrixTranspose(view));
 
 	for (auto& e : scene){
-		XMStoreFloat4x4(&constantes[0][e.cbIndex].v, XMMatrixTranspose(view));
+		//XMStoreFloat4x4(&constantes[0][e.cbIndex].v, XMMatrixTranspose(view));
 		buffer[0].CopyConstants(&constantes[0][e.cbIndex], e.cbIndex);
 
 		for(uint i = 1; i < 4; i++)
 		{
-			
 			buffer[i].CopyConstants(&constantes[i][e.cbIndex], e.cbIndex);
 		}
 	}
@@ -498,7 +501,7 @@ void DXApp::Update()
 
 void DXApp::DisplayPadrao()
 {
-	graphics->Clear(pipelineStateSceneWireframe);
+	graphics->Clear(wireframe ? pipelineStateSceneWireframe : pipelineStateSceneSolid);
 
 	//graphics->CommandList()->
 	//graphics->CommandList()->SetPipelineState(pipelineStateSceneWireframe);  
@@ -513,6 +516,13 @@ void DXApp::DisplayPadrao()
 	ID3D12DescriptorHeap* heaps[] = { buffer->ConstantBufferHeap() };
 	graphics->CommandList()->SetDescriptorHeaps(1, heaps);
 
+	XMFLOAT4X4 proj;
+	XMStoreFloat4x4(&proj, XMMatrixTranspose(projP));
+	graphics->CommandList()->SetGraphicsRoot32BitConstants(1, 16, &proj, 0);
+
+	XMFLOAT4X4 view;
+	XMStoreFloat4x4(&view, XMLoadFloat4x4(&viewMatrix[0]));
+	graphics->CommandList()->SetGraphicsRoot32BitConstants(2, 16, &view, 0);
 
 	for(auto& e : scene)
 	{
@@ -549,18 +559,24 @@ void DXApp::DisplayViews()
 	
 
 	// Desenhando a geometria
-
-		graphics->CommandList()->SetPipelineState(pipelineStateSceneSolid);
+		graphics->CommandList()->SetPipelineState(wireframe ? pipelineStateSceneWireframe : pipelineStateSceneSolid);
 		graphics->CommandList()->IASetVertexBuffers(0, 1, buffer->VertexBufferView());
 		graphics->CommandList()->IASetIndexBuffer(buffer->IndexBufferView());
 		graphics->CommandList()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+
+	XMFLOAT4X4 proj;
 
 	for(uint i = 0; i < 4; i++)
 	{
 		ID3D12DescriptorHeap* heaps[] = { buffer[i].ConstantBufferHeap()};
 		graphics->CommandList()->SetDescriptorHeaps(1, heaps);
 		graphics->CommandList()->RSSetViewports(1, &viewports[i]);
+
+		XMStoreFloat4x4(&proj, XMMatrixTranspose(i == 0 ? projP : projO));
+		graphics->CommandList()->SetGraphicsRoot32BitConstants(1, 16, &proj, 0);
+
+		graphics->CommandList()->SetGraphicsRoot32BitConstants(2, 16, &viewMatrix[i], 0);
 
 		for(auto& e : scene){
 			graphics->CommandList()->SetGraphicsRootDescriptorTable(0, buffer[i].ConstantBufferHandle(e.cbIndex));
@@ -606,7 +622,7 @@ void DXApp::BuildRootSignature() {
 		D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND 
 	};
 
-	D3D12_ROOT_PARAMETER rootParameters[2];
+	D3D12_ROOT_PARAMETER rootParameters[3];
 
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameters[0].ParameterType =	D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -614,12 +630,19 @@ void DXApp::BuildRootSignature() {
 	rootParameters[0].DescriptorTable.pDescriptorRanges = &cbvTable;
 	
 	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameters[1].Descriptor.RegisterSpace = 0;
-	rootParameters[1].Descriptor.ShaderRegister = 1;
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameters[1].Constants.RegisterSpace = 0;
+	rootParameters[1].Constants.ShaderRegister = 1;
+	rootParameters[1].Constants.Num32BitValues = 16;
+
+	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameters[2].Constants.RegisterSpace = 0;
+	rootParameters[2].Constants.ShaderRegister = 2;
+	rootParameters[2].Constants.Num32BitValues = 16;
 
 	D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {
-		2,
+		3,
 		rootParameters,
 		0,
 		nullptr,
@@ -724,7 +747,7 @@ void DXApp::BuildPipelineState()
 	ThrowIfFailed(graphics->Device()->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&pipelineStateSceneWireframe)));
 	
 
-	rasterizer.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	rasterizer.FillMode = D3D12_FILL_MODE_SOLID;
 	pso.RasterizerState = rasterizer;
 
 	graphics->Device()->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&pipelineStateSceneSolid));
